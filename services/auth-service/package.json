@@ -15,7 +15,14 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/infrastructure/config/typeorm.config.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infrastructure/config/typeorm.config.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/infrastructure/config/typeorm.config.ts",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infrastructure/config/typeorm.config.ts",
+    "test:connection": "ts-node src/infrastructure/scripts/test-connection.ts",
+    "test:kafka": "ts-node src/infrastructure/scripts/test-kafka.ts",
+    "test:redis": "ts-node src/infrastructure/scripts/test-redis.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.3.0",
@@ -36,6 +43,7 @@
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "prom-client": "^15.1.0",
+    "redis": "^5.10.0",
     "reflect-metadata": "^0.1.14",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.17",

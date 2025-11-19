@@ -14,7 +14,9 @@ export const getDatabaseConfig = (
     password: config.get<string>('DATABASE_PASSWORD'),
     database: config.get<string>('DATABASE_NAME'),
     entities: [__dirname + '/../adapters/persistence/**/*.entity.ts'],
-    synchronize: config.get<string>('NODE_ENV') !== 'production',
+    migrations: [__dirname + '/../migrations/*.ts'],
+    migrationsRun: false,
+    synchronize: config.get<string>('NODE_ENV') !== 'production' && config.get<string>('RUN_MIGRATIONS') !== 'true',
     logging: config.get<string>('NODE_ENV') === 'development',
   };
 

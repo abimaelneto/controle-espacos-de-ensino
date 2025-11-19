@@ -13,6 +13,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:ps": "docker-compose ps",
+    "docker:up:minimal": "docker-compose -f docker-compose.minimal.yml up -d",
+    "docker:down:minimal": "docker-compose -f docker-compose.minimal.yml down",
     "dev:auth": "cd services/auth-service && npm run start:dev",
     "dev:students": "cd services/students-service && npm run start:dev",
     "dev:spaces": "cd services/spaces-service && npm run start:dev",
