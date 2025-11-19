@@ -65,3 +65,5 @@ temp/
 *.pid.lock
 
 docs_ia/
+
+*.md
