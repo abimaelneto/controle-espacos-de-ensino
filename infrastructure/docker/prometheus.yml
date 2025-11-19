@@ -1,0 +1,25 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:3000']
+
+  - job_name: 'students-service'
+    static_configs:
+      - targets: ['students-service:3000']
+
+  - job_name: 'spaces-service'
+    static_configs:
+      - targets: ['spaces-service:3000']
+
+  - job_name: 'analytics-service'
+    static_configs:
+      - targets: ['analytics-service:3000']
+

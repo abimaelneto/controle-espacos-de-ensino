@@ -1,0 +1,36 @@
+{
+  "name": "controle-espacos-de-ensino",
+  "version": "1.0.0",
+  "description": "Sistema de controle de espaços de ensino - PUCPR Case Técnico",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:ps": "docker-compose ps",
+    "dev:auth": "cd services/auth-service && npm run start:dev",
+    "dev:students": "cd services/students-service && npm run start:dev",
+    "dev:spaces": "cd services/spaces-service && npm run start:dev",
+    "dev:analytics": "cd services/analytics-service && npm run start:dev",
+    "dev:frontend": "cd frontend/web-app && npm run dev",
+    "test": "npm run test --workspaces",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [
+    "pucpr",
+    "case-tecnico",
+    "ddd",
+    "microservices",
+    "nestjs",
+    "react"
+  ],
+  "author": "Abimael Neto",
+  "license": "MIT"
+}
+
