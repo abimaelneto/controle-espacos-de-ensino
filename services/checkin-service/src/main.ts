@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
+import { register } from 'prom-client';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -24,9 +25,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  const port = process.env.PORT || 3004;
+  // Prometheus metrics
+  register.setDefaultLabels({ service: 'checkin-service' });
+
+  const port = process.env.PORT || 3003;
   await app.listen(port);
-  console.log(`Check-in Service running on http://localhost:${port}`);
+  console.log(`🚀 Check-in Service running on: http://localhost:${port}`);
+  console.log(`📊 Metrics: http://localhost:${port}/metrics`);
 }
 
 bootstrap();

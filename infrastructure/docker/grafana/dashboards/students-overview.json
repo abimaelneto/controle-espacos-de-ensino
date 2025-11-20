@@ -1,0 +1,73 @@
+{
+  "dashboard": {
+    "title": "Visão Geral de Alunos",
+    "tags": ["alunos", "negócio"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total de Alunos",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "students_total",
+            "format": "none"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Alunos Ativos",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "students_active",
+            "format": "none"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Alunos Criados (Últimas 24h)",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(increase(students_created_total[24h]))",
+            "format": "none"
+          }
+        ],
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "Taxa de Criação de Alunos",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(students_created_total[5m]) * 60",
+            "legendFormat": "Alunos/minuto"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 5,
+        "title": "Alunos por Status",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (status) (increase(students_created_total[7d]))",
+            "legendFormat": "{{status}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 0
+  }
+}
+

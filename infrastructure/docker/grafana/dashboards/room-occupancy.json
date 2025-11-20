@@ -1,0 +1,68 @@
+{
+  "dashboard": {
+    "title": "Ocupação de Salas",
+    "tags": ["ocupação", "salas", "negócio"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Taxa de Ocupação por Sala (%)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "(room_occupancy / room_capacity) * 100",
+            "legendFormat": "{{room_number}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "yaxes": [{"format": "percent", "max": 100}]
+      },
+      {
+        "id": 2,
+        "title": "Check-ins por Sala (Últimas 24h)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "increase(checkins_by_room_total[24h])",
+            "legendFormat": "{{room_number}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Ocupação Atual por Sala",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "room_occupancy",
+            "format": "table",
+            "legendFormat": ""
+          },
+          {
+            "expr": "room_capacity",
+            "format": "table",
+            "legendFormat": ""
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Check-ins por Tipo de Sala",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (room_type) (increase(checkins_performed_total[24h]))",
+            "legendFormat": "{{room_type}}"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 0
+  }
+}
+

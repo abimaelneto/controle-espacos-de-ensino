@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { AnalyticsController } from './presentation/http/controllers/analytics.controller';
+import { MetricsController } from './presentation/http/controllers/metrics.controller';
 import { GetRoomUsageStatsUseCase } from './application/use-cases/get-room-usage-stats.use-case';
 import { MySQLMetricRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-metric.repository.adapter';
 import { MetricEntity } from './infrastructure/adapters/persistence/mysql/metric.entity';
@@ -28,7 +29,7 @@ const EVENT_CONSUMER = 'EVENT_CONSUMER';
     }),
     TypeOrmModule.forFeature([MetricEntity]),
   ],
-  controllers: [AnalyticsController],
+  controllers: [AnalyticsController, MetricsController],
   providers: [
     {
       provide: METRIC_REPOSITORY,

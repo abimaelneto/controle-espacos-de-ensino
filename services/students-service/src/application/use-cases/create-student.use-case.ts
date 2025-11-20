@@ -8,12 +8,14 @@ import { Email } from '../../domain/value-objects/email.vo';
 import { Matricula } from '../../domain/value-objects/matricula.vo';
 import { CreateStudentDto } from '../dto/create-student.dto';
 import { StudentCreatedEvent } from '../../domain/events/student-created.event';
+import { BusinessMetricsService } from '../../infrastructure/metrics/business-metrics.service';
 
 export class CreateStudentUseCase {
   constructor(
     private readonly studentRepository: IStudentRepository,
     private readonly eventPublisher: IEventPublisher,
     private readonly validationService: StudentValidationService,
+    private readonly metrics?: BusinessMetricsService,
   ) {}
 
   async execute(createStudentDto: CreateStudentDto): Promise<Student> {
@@ -57,6 +59,9 @@ export class CreateStudentUseCase {
 
     const event = new StudentCreatedEvent(student);
     await this.eventPublisher.publish(event);
+
+    // Metrics
+    this.metrics?.incrementStudentsCreated(student.getStatus());
 
     return student;
   }

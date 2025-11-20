@@ -5,6 +5,7 @@ import { Attendance } from '../../domain/entities/attendance.entity';
 import { AttendanceCheckedInEvent } from '../../domain/events/attendance-checked-in.event';
 import { PerformCheckInDto } from '../dto/perform-checkin.dto';
 import { ResolveStudentIdUseCase } from './resolve-student-id.use-case';
+import { BusinessMetricsService } from '../../infrastructure/metrics/business-metrics.service';
 
 export interface PerformCheckInResult {
   success: boolean;
@@ -18,9 +19,12 @@ export class PerformCheckInUseCase {
     private readonly validationService: CheckInValidationService,
     private readonly eventPublisher: IEventPublisher,
     private readonly resolveStudentIdUseCase: ResolveStudentIdUseCase,
+    private readonly metrics?: BusinessMetricsService,
   ) {}
 
   async execute(dto: PerformCheckInDto): Promise<PerformCheckInResult> {
+    const startTime = Date.now();
+    
     // Resolver studentId a partir do método de identificação
     let studentId = dto.studentId;
     
@@ -32,6 +36,7 @@ export class PerformCheckInUseCase {
     }
 
     if (!studentId) {
+      this.metrics?.incrementCheckinsFailed('student_not_found');
       return {
         success: false,
         message: 'Aluno não encontrado com os dados fornecidos',
@@ -45,6 +50,7 @@ export class PerformCheckInUseCase {
     );
 
     if (!validation.valid) {
+      this.metrics?.incrementCheckinsFailed(validation.reason || 'validation_failed');
       return {
         success: false,
         message: validation.reason || 'Check-in não pode ser realizado',
@@ -60,6 +66,16 @@ export class PerformCheckInUseCase {
     // Publicar evento
     const event = new AttendanceCheckedInEvent(attendance);
     await this.eventPublisher.publish(event);
+
+    // Metrics
+    const roomType = validation.room?.type || 'UNKNOWN';
+    this.metrics?.incrementCheckinsPerformed(dto.roomId, roomType);
+    this.metrics?.incrementCheckinsByRoom(dto.roomId, validation.room?.roomNumber || 'UNKNOWN');
+    if (dto.identificationMethod) {
+      this.metrics?.incrementCheckinsByMethod(dto.identificationMethod);
+    }
+    const duration = (Date.now() - startTime) / 1000;
+    this.metrics?.recordCheckinDuration(dto.roomId, duration);
 
     return {
       success: true,

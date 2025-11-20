@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { RoomsController } from './presentation/http/controllers/rooms.controller';
+import { MetricsController } from './presentation/http/controllers/metrics.controller';
+import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
 import { CreateRoomUseCase } from './application/use-cases/create-room.use-case';
 import { GetRoomUseCase } from './application/use-cases/get-room.use-case';
 import { ListRoomsUseCase } from './application/use-cases/list-rooms.use-case';
@@ -31,7 +33,7 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     }),
     TypeOrmModule.forFeature([RoomEntity]),
   ],
-  controllers: [RoomsController],
+  controllers: [RoomsController, MetricsController],
   providers: [
     // Adapters
     {
@@ -59,10 +61,11 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
         repository: IRoomRepository,
         publisher: IEventPublisher,
         validationService: RoomValidationService,
+        metrics: BusinessMetricsService,
       ) => {
-        return new CreateRoomUseCase(repository, publisher, validationService);
+        return new CreateRoomUseCase(repository, publisher, validationService, metrics);
       },
-      inject: [ROOM_REPOSITORY, EVENT_PUBLISHER, RoomValidationService],
+      inject: [ROOM_REPOSITORY, EVENT_PUBLISHER, RoomValidationService, BusinessMetricsService],
     },
     {
       provide: GetRoomUseCase,
@@ -92,8 +95,10 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
       },
       inject: [ROOM_REPOSITORY],
     },
+    // Metrics
+    BusinessMetricsService,
   ],
-  exports: [ROOM_REPOSITORY, EVENT_PUBLISHER],
+  exports: [ROOM_REPOSITORY, EVENT_PUBLISHER, BusinessMetricsService],
 })
 export class RoomsModule {}
 

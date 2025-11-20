@@ -3,6 +3,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { StudentsController } from './presentation/http/controllers/students.controller';
+import { MetricsController } from './presentation/http/controllers/metrics.controller';
+import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
 import { CreateStudentUseCase } from './application/use-cases/create-student.use-case';
 import { GetStudentUseCase } from './application/use-cases/get-student.use-case';
 import { ListStudentsUseCase } from './application/use-cases/list-students.use-case';
@@ -33,7 +35,7 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     }),
     TypeOrmModule.forFeature([StudentEntity]),
   ],
-  controllers: [StudentsController],
+  controllers: [StudentsController, MetricsController],
   providers: [
     // Adapters
     {
@@ -61,14 +63,16 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
         repository: IStudentRepository,
         publisher: IEventPublisher,
         validationService: StudentValidationService,
+        metrics: BusinessMetricsService,
       ) => {
         return new CreateStudentUseCase(
           repository,
           publisher,
           validationService,
+          metrics,
         );
       },
-      inject: [STUDENT_REPOSITORY, EVENT_PUBLISHER, StudentValidationService],
+      inject: [STUDENT_REPOSITORY, EVENT_PUBLISHER, StudentValidationService, BusinessMetricsService],
     },
     {
       provide: GetStudentUseCase,
@@ -115,7 +119,9 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
       },
       inject: [STUDENT_REPOSITORY],
     },
+    // Metrics
+    BusinessMetricsService,
   ],
-  exports: [STUDENT_REPOSITORY, EVENT_PUBLISHER],
+  exports: [STUDENT_REPOSITORY, EVENT_PUBLISHER, BusinessMetricsService],
 })
 export class StudentsModule {}

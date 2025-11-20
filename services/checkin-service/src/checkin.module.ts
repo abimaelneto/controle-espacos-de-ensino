@@ -4,6 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { CheckInController } from './presentation/http/controllers/checkin.controller';
+import { MetricsController } from './presentation/http/controllers/metrics.controller';
+import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
 import { PerformCheckInUseCase } from './application/use-cases/perform-checkin.use-case';
 import { GetAttendanceHistoryUseCase } from './application/use-cases/get-attendance-history.use-case';
 import { ResolveStudentIdUseCase } from './application/use-cases/resolve-student-id.use-case';
@@ -37,7 +39,7 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     }),
     TypeOrmModule.forFeature([AttendanceEntity]),
   ],
-  controllers: [CheckInController],
+  controllers: [CheckInController, MetricsController],
   providers: [
     // Adapters
     {
@@ -91,15 +93,17 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
         validationService: CheckInValidationService,
         eventPublisher: IEventPublisher,
         resolveStudentIdUseCase: ResolveStudentIdUseCase,
+        metrics: BusinessMetricsService,
       ) => {
         return new PerformCheckInUseCase(
           repository,
           validationService,
           eventPublisher,
           resolveStudentIdUseCase,
+          metrics,
         );
       },
-      inject: [ATTENDANCE_REPOSITORY, CheckInValidationService, EVENT_PUBLISHER, ResolveStudentIdUseCase],
+      inject: [ATTENDANCE_REPOSITORY, CheckInValidationService, EVENT_PUBLISHER, ResolveStudentIdUseCase, BusinessMetricsService],
     },
     {
       provide: GetAttendanceHistoryUseCase,
@@ -108,8 +112,10 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
       },
       inject: [ATTENDANCE_REPOSITORY],
     },
+    // Metrics
+    BusinessMetricsService,
   ],
-  exports: [ATTENDANCE_REPOSITORY],
+  exports: [ATTENDANCE_REPOSITORY, BusinessMetricsService],
 })
 export class CheckInModule {}
 

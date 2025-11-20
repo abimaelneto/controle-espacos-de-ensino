@@ -7,12 +7,14 @@ import { Capacity } from '../../domain/value-objects/capacity.vo';
 import { RoomType } from '../../domain/value-objects/room-type.vo';
 import { CreateRoomDto } from '../dto/create-room.dto';
 import { RoomCreatedEvent } from '../../domain/events/room-created.event';
+import { BusinessMetricsService } from '../../infrastructure/metrics/business-metrics.service';
 
 export class CreateRoomUseCase {
   constructor(
     private readonly roomRepository: IRoomRepository,
     private readonly eventPublisher: IEventPublisher,
     private readonly validationService: RoomValidationService,
+    private readonly metrics?: BusinessMetricsService,
   ) {}
 
   async execute(createRoomDto: CreateRoomDto): Promise<Room> {
@@ -39,6 +41,9 @@ export class CreateRoomUseCase {
 
     const event = new RoomCreatedEvent(room);
     await this.eventPublisher.publish(event);
+
+    // Metrics
+    this.metrics?.incrementRoomsCreated(room.getType().toString());
 
     return room;
   }

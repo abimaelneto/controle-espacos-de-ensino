@@ -8,26 +8,37 @@ scrape_configs:
       - targets: ['localhost:9090']
 
   - job_name: 'auth-service'
+    metrics_path: '/metrics'
     static_configs:
-      - targets: ['auth-service:3000']
+      - targets: ['host.docker.internal:3000']
+        labels:
+          service: 'auth-service'
 
   - job_name: 'students-service'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['host.docker.internal:3001']
+        labels:
+          service: 'students-service'
 
   - job_name: 'rooms-service'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['host.docker.internal:3002']
+        labels:
+          service: 'rooms-service'
 
   - job_name: 'checkin-service'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['host.docker.internal:3003']
+        labels:
+          service: 'checkin-service'
 
   - job_name: 'analytics-service'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['host.docker.internal:3004']
+        labels:
+          service: 'analytics-service'
 
