@@ -15,6 +15,8 @@ import { GetStudentUseCase } from '../../../application/use-cases/get-student.us
 import { ListStudentsUseCase } from '../../../application/use-cases/list-students.use-case';
 import { UpdateStudentUseCase } from '../../../application/use-cases/update-student.use-case';
 import { DeleteStudentUseCase } from '../../../application/use-cases/delete-student.use-case';
+import { FindStudentByCPFUseCase } from '../../../application/use-cases/find-student-by-cpf.use-case';
+import { FindStudentByMatriculaUseCase } from '../../../application/use-cases/find-student-by-matricula.use-case';
 import { CreateStudentDto } from '../../../application/dto/create-student.dto';
 import { UpdateStudentDto } from '../../../application/dto/update-student.dto';
 import { Student } from '../../../domain/entities/student.entity';
@@ -28,6 +30,8 @@ export class StudentsController {
     private readonly listStudentsUseCase: ListStudentsUseCase,
     private readonly updateStudentUseCase: UpdateStudentUseCase,
     private readonly deleteStudentUseCase: DeleteStudentUseCase,
+    private readonly findStudentByCPFUseCase: FindStudentByCPFUseCase,
+    private readonly findStudentByMatriculaUseCase: FindStudentByMatriculaUseCase,
   ) {}
 
   @Post()
@@ -73,6 +77,46 @@ export class StudentsController {
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.deleteStudentUseCase.execute(id);
+  }
+
+  @Get('cpf/:cpf')
+  @ApiOperation({ summary: 'Buscar aluno por CPF' })
+  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
+  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  async findByCPF(@Param('cpf') cpf: string) {
+    const student = await this.findStudentByCPFUseCase.execute(cpf);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      name: student.getName().getFullName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+    };
+  }
+
+  @Get('matricula/:matricula')
+  @ApiOperation({ summary: 'Buscar aluno por Matrícula' })
+  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
+  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  async findByMatricula(@Param('matricula') matricula: string) {
+    const student = await this.findStudentByMatriculaUseCase.execute(matricula);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      name: student.getName().getFullName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+    };
   }
 }
 

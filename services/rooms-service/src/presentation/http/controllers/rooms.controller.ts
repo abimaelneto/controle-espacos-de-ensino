@@ -50,8 +50,20 @@ export class RoomsController {
   @ApiOperation({ summary: 'Buscar sala por ID' })
   @ApiResponse({ status: 200, description: 'Sala encontrada' })
   @ApiResponse({ status: 404, description: 'Sala não encontrada' })
-  async findOne(@Param('id') id: string): Promise<Room | null> {
-    return this.getRoomUseCase.execute(id);
+  async findOne(@Param('id') id: string) {
+    const room = await this.getRoomUseCase.execute(id);
+    if (!room) {
+      return null;
+    }
+    return {
+      id: room.getId(),
+      roomNumber: room.getRoomNumber().toString(),
+      capacity: room.getCapacity().getValue(),
+      type: room.getType().getValue(),
+      description: room.getDescription(),
+      hasEquipment: room.hasEquipment(),
+      status: room.getStatus(),
+    };
   }
 
   @Put(':id')

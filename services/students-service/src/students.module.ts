@@ -8,6 +8,8 @@ import { GetStudentUseCase } from './application/use-cases/get-student.use-case'
 import { ListStudentsUseCase } from './application/use-cases/list-students.use-case';
 import { UpdateStudentUseCase } from './application/use-cases/update-student.use-case';
 import { DeleteStudentUseCase } from './application/use-cases/delete-student.use-case';
+import { FindStudentByCPFUseCase } from './application/use-cases/find-student-by-cpf.use-case';
+import { FindStudentByMatriculaUseCase } from './application/use-cases/find-student-by-matricula.use-case';
 import { StudentValidationService } from './domain/services/student-validation.service';
 import { MySQLStudentRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-student.repository.adapter';
 import { StudentEntity } from './infrastructure/adapters/persistence/mysql/student.entity';
@@ -96,6 +98,20 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
       provide: DeleteStudentUseCase,
       useFactory: (repository: IStudentRepository) => {
         return new DeleteStudentUseCase(repository);
+      },
+      inject: [STUDENT_REPOSITORY],
+    },
+    {
+      provide: FindStudentByCPFUseCase,
+      useFactory: (repository: IStudentRepository) => {
+        return new FindStudentByCPFUseCase(repository);
+      },
+      inject: [STUDENT_REPOSITORY],
+    },
+    {
+      provide: FindStudentByMatriculaUseCase,
+      useFactory: (repository: IStudentRepository) => {
+        return new FindStudentByMatriculaUseCase(repository);
       },
       inject: [STUDENT_REPOSITORY],
     },
