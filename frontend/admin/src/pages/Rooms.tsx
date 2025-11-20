@@ -87,7 +87,7 @@ export default function Rooms() {
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {rooms.map((room) => (
-                <Card key={room.id}>
+                <Card key={room.id} data-testid="room-card">
                   <CardHeader>
                     <CardTitle>{room.roomNumber}</CardTitle>
                     <CardDescription>

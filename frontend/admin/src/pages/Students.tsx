@@ -89,6 +89,7 @@ export default function Students() {
               {students.map((student) => (
                 <div
                   key={student.id}
+                  data-testid="student-card"
                   className="flex items-center justify-between p-4 border rounded-lg"
                 >
                   <div>
