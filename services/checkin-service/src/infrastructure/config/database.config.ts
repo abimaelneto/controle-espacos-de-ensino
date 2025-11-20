@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
 
 export const getDatabaseConfig = (
   config: ConfigService,
@@ -13,8 +14,10 @@ export const getDatabaseConfig = (
     username: config.get<string>('DATABASE_USER'),
     password: config.get<string>('DATABASE_PASSWORD'),
     database: config.get<string>('DATABASE_NAME'),
-    entities: [__dirname + '/../adapters/persistence/**/*.entity.ts'],
-    migrations: [__dirname + '/../migrations/*.ts'],
+    entities: [
+      join(__dirname, '/../adapters/persistence/**/*.entity.{ts,js}'),
+    ],
+    migrations: [join(__dirname, '/../migrations/*.{ts,js}')],
     migrationsRun: false,
     synchronize:
       config.get<string>('NODE_ENV') !== 'production' &&

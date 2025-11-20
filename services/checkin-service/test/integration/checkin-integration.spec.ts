@@ -1,14 +1,13 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/core';
+import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { HttpModule } from '@nestjs/axios';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppModule } from '../../src/app.module';
 import { AttendanceEntity } from '../../src/infrastructure/adapters/persistence/mysql/attendance.entity';
-import { StudentsClientAdapter } from '../../src/infrastructure/adapters/http/students-client.adapter';
-import { RoomsClientAdapter } from '../../src/infrastructure/adapters/http/rooms-client.adapter';
 import { HttpService } from '@nestjs/axios';
+import { AxiosResponse } from 'axios';
 import { of } from 'rxjs';
 
 /**
@@ -19,6 +18,17 @@ import { of } from 'rxjs';
  * - Check-in Service ↔ Rooms Service
  * - Check-in Service ↔ Analytics Service (via eventos)
  */
+const STUDENTS_CLIENT_TOKEN = 'STUDENTS_CLIENT';
+const ROOMS_CLIENT_TOKEN = 'ROOMS_CLIENT';
+
+const buildResponse = <T>(data: T, status = 200): AxiosResponse<T> => ({
+  data,
+  status,
+  statusText: 'OK',
+  headers: {},
+  config: { headers: {} } as any,
+});
+
 describe('CheckIn Integration (e2e)', () => {
   let app: INestApplication;
   let attendanceRepository: Repository<AttendanceEntity>;
@@ -28,13 +38,13 @@ describe('CheckIn Integration (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule, HttpModule],
     })
-      .overrideProvider(StudentsClientAdapter)
+      .overrideProvider(STUDENTS_CLIENT_TOKEN)
       .useValue({
         findStudentByMatricula: jest.fn(),
         findStudentByCPF: jest.fn(),
         validateStudentActive: jest.fn(),
       })
-      .overrideProvider(RoomsClientAdapter)
+      .overrideProvider(ROOMS_CLIENT_TOKEN)
       .useValue({
         getRoom: jest.fn(),
         validateRoomAvailable: jest.fn(),
@@ -64,8 +74,8 @@ describe('CheckIn Integration (e2e)', () => {
       // Mock Students Service
       jest.spyOn(httpService, 'get').mockImplementation((url: string) => {
         if (url.includes('/students/')) {
-          return of({
-            data: {
+          return of(
+            buildResponse({
               id: 'student-123',
               userId: 'user-123',
               name: 'João Silva',
@@ -73,23 +83,21 @@ describe('CheckIn Integration (e2e)', () => {
               email: 'joao@example.com',
               matricula: '2024001234',
               status: 'ACTIVE',
-            },
-            status: 200,
-          });
+            }),
+          );
         }
         if (url.includes('/rooms/')) {
-          return of({
-            data: {
+          return of(
+            buildResponse({
               id: 'room-456',
               roomNumber: 'A101',
               capacity: 30,
               type: 'CLASSROOM',
               status: 'ACTIVE',
-            },
-            status: 200,
-          });
+            }),
+          );
         }
-        return of({ data: null, status: 404 });
+        return of(buildResponse(null, 404));
       });
 
       const checkInDto = {
@@ -111,15 +119,14 @@ describe('CheckIn Integration (e2e)', () => {
     it('should reject check-in if student is inactive', async () => {
       jest.spyOn(httpService, 'get').mockImplementation((url: string) => {
         if (url.includes('/students/')) {
-          return of({
-            data: {
+          return of(
+            buildResponse({
               id: 'student-123',
               status: 'INACTIVE',
-            },
-            status: 200,
-          });
+            }),
+          );
         }
-        return of({ data: null, status: 404 });
+        return of(buildResponse(null, 404));
       });
 
       const checkInDto = {
@@ -142,37 +149,33 @@ describe('CheckIn Integration (e2e)', () => {
       // Criar 30 check-ins ativos (capacidade máxima)
       const entities = Array.from({ length: 30 }, (_, i) =>
         attendanceRepository.create({
-          id: `attendance-${i}`,
           studentId: `student-${i}`,
           roomId: 'room-456',
           checkInTime: new Date(),
-          checkOutTime: null,
         }),
       );
       await attendanceRepository.save(entities);
 
       jest.spyOn(httpService, 'get').mockImplementation((url: string) => {
         if (url.includes('/students/')) {
-          return of({
-            data: {
+          return of(
+            buildResponse({
               id: 'student-123',
               status: 'ACTIVE',
-            },
-            status: 200,
-          });
+            }),
+          );
         }
         if (url.includes('/rooms/')) {
-          return of({
-            data: {
+          return of(
+            buildResponse({
               id: 'room-456',
               roomNumber: 'A101',
               capacity: 30,
               status: 'ACTIVE',
-            },
-            status: 200,
-          });
+            }),
+          );
         }
-        return of({ data: null, status: 404 });
+        return of(buildResponse(null, 404));
       });
 
       const checkInDto = {

@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { HttpModule } from '@nestjs/axios';
+import { HttpModule, HttpService } from '@nestjs/axios';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { CheckInController } from './presentation/http/controllers/checkin.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
@@ -14,7 +14,10 @@ import { MySQLAttendanceRepositoryAdapter } from './infrastructure/adapters/pers
 import { AttendanceEntity } from './infrastructure/adapters/persistence/mysql/attendance.entity';
 import { StudentsClientAdapter } from './infrastructure/adapters/http/students-client.adapter';
 import { RoomsClientAdapter } from './infrastructure/adapters/http/rooms-client.adapter';
+import { MockStudentsClientAdapter } from './infrastructure/adapters/http/mock/mock-students-client.adapter';
+import { MockRoomsClientAdapter } from './infrastructure/adapters/http/mock/mock-rooms-client.adapter';
 import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-publisher.adapter';
+import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
 import type { IAttendanceRepository } from './domain/ports/repositories/attendance.repository.port';
 import type { IStudentsClient } from './domain/ports/http/students-client.port';
 import type { IRoomsClient } from './domain/ports/http/rooms-client.port';
@@ -24,6 +27,15 @@ const ATTENDANCE_REPOSITORY = 'ATTENDANCE_REPOSITORY';
 const STUDENTS_CLIENT = 'STUDENTS_CLIENT';
 const ROOMS_CLIENT = 'ROOMS_CLIENT';
 const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
+
+const isTrue = (value?: string | null) =>
+  (value ?? '').toString().toLowerCase() === 'true';
+
+const shouldUseMockClients = (config: ConfigService) =>
+  isTrue(
+    (process.env.CHECKIN_USE_FAKE_CLIENTS ??
+      config.get<string>('CHECKIN_USE_FAKE_CLIENTS')) || 'false',
+  );
 
 @Module({
   imports: [
@@ -48,20 +60,47 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     },
     {
       provide: STUDENTS_CLIENT,
-      useClass: StudentsClientAdapter,
+      useFactory: (
+        httpService: HttpService,
+        configService: ConfigService,
+      ) => {
+        if (shouldUseMockClients(configService)) {
+          return new MockStudentsClientAdapter();
+        }
+        return new StudentsClientAdapter(httpService, configService);
+      },
+      inject: [HttpService, ConfigService],
     },
     {
       provide: ROOMS_CLIENT,
-      useClass: RoomsClientAdapter,
+      useFactory: (
+        httpService: HttpService,
+        configService: ConfigService,
+      ) => {
+        if (shouldUseMockClients(configService)) {
+          return new MockRoomsClientAdapter();
+        }
+        return new RoomsClientAdapter(httpService, configService);
+      },
+      inject: [HttpService, ConfigService],
     },
     {
       provide: EVENT_PUBLISHER,
-      useClass: KafkaEventPublisherAdapter,
+      useFactory: (config: ConfigService) => {
+        const disabled = isTrue(
+          (process.env.KAFKA_DISABLED ??
+            config.get<string>('KAFKA_DISABLED')) || 'false',
+        );
+
+        if (disabled) {
+          return new NoopEventPublisherAdapter();
+        }
+
+        return new KafkaEventPublisherAdapter(config);
+      },
+      inject: [ConfigService],
     },
     MySQLAttendanceRepositoryAdapter,
-    StudentsClientAdapter,
-    RoomsClientAdapter,
-    KafkaEventPublisherAdapter,
     // Domain Services
     {
       provide: CheckInValidationService,
