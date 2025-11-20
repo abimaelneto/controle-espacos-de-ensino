@@ -18,11 +18,14 @@
     "dev:auth": "cd services/auth-service && npm run start:dev",
     "dev:students": "cd services/students-service && npm run start:dev",
     "dev:spaces": "cd services/spaces-service && npm run start:dev",
+    "dev:checkin": "cd services/checkin-service && npm run start:dev",
     "dev:analytics": "cd services/analytics-service && npm run start:dev",
     "dev:frontend": "cd frontend/admin && npm run dev",
     "test": "npm run test --workspaces",
     "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces"
+    "lint": "npm run lint --workspaces",
+    "perf:auth": "artillery run tests/performance/auth-login.yml",
+    "perf:checkin": "artillery run tests/performance/checkin-traefik.yml"
   },
   "keywords": [
     "pucpr",

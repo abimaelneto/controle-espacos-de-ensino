@@ -1,0 +1,87 @@
+{
+  "dashboard": {
+    "uid": "stress-monitor",
+    "title": "Stress Test Monitor",
+    "tags": ["stress-test", "observability"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "schemaVersion": 16,
+    "version": 0,
+    "panels": [
+      {
+        "id": 1,
+        "title": "Check-ins por segundo",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum(rate(checkins_performed_total[30s]))",
+            "legendFormat": "performados/s"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+      },
+      {
+        "id": 2,
+        "title": "Falhas por motivo",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (reason) (rate(checkins_failed_total[30s]))",
+            "legendFormat": "{{reason}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+      },
+      {
+        "id": 3,
+        "title": "Latência P95 do Check-in (s)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, sum by (le) (rate(checkin_duration_seconds_bucket[30s])))",
+            "legendFormat": "p95"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 }
+      },
+      {
+        "id": 4,
+        "title": "Check-ins por método",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "sum by (method) (rate(checkins_by_method_total[30s]))",
+            "legendFormat": "{{method}}"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 }
+      },
+      {
+        "id": 5,
+        "title": "Sucesso vs Falha (últimos 5 min)",
+        "type": "stat",
+        "options": {
+          "reduceOptions": {
+            "calcs": ["sum"],
+            "fields": "",
+            "values": false
+          },
+          "orientation": "horizontal",
+          "textMode": "value_and_name"
+        },
+        "targets": [
+          {
+            "expr": "increase(checkins_performed_total[5m])",
+            "legendFormat": "Sucesso"
+          },
+          {
+            "expr": "increase(checkins_failed_total[5m])",
+            "legendFormat": "Falha"
+          }
+        ],
+        "gridPos": { "h": 6, "w": 24, "x": 0, "y": 16 }
+      }
+    ]
+  }
+}
+

@@ -70,7 +70,7 @@ cd controle-espacos-de-ensino
 npm install
 ```
 
-3. **Suba a infraestrutura:**
+3. **Suba a infraestrutura (inclui Traefik como API Gateway):**
 ```bash
 npm run docker:up
 ```
@@ -81,6 +81,7 @@ Isso irá subir:
 - Kafka + Zookeeper
 - Prometheus
 - Grafana
+- Traefik (Gateway HTTP em `http://api.localhost`)
 
 4. **Configure as variáveis de ambiente:**
 
@@ -111,6 +112,7 @@ npm run dev:frontend
 - [Plano Detalhado](./PLANO_DETALHADO.md)
 - [Adaptadores AWS](./AWS_ADAPTERS.md)
 - [Progresso do Projeto](./PROGRESS.md)
+- [Configuração do Traefik](./docs_ia/TRAEFIK_SETUP.md)
 
 ## 🧪 Testes
 
@@ -146,24 +148,41 @@ controle-espacos-de-ensino/
 
 ## 🔧 Scripts Disponíveis
 
-- `npm run docker:up` - Sobe toda a infraestrutura
+- `npm run docker:up` - Sobe toda a infraestrutura (Traefik incluso)
 - `npm run docker:down` - Para a infraestrutura
 - `npm run docker:logs` - Ver logs dos containers
 - `npm run dev:auth` - Inicia Auth Service
 - `npm run dev:students` - Inicia Students Service
-- `npm run dev:spaces` - Inicia Spaces Service
+- `npm run dev:spaces` - Inicia Rooms/Spaces Service
 - `npm run dev:analytics` - Inicia Analytics Service
-- `npm run dev:frontend` - Inicia Frontend
+- `npm run dev:frontend` - Inicia Frontend Admin
+- `npm run dev:student` - Inicia Frontend Student
 - `npm run test` - Executa todos os testes
 - `npm run build` - Build de todos os serviços
 
-## 🌐 Portas dos Serviços
+## 🌐 Endpoints via Traefik
+
+Todos os serviços backend podem ser acessados por `http://api.localhost`, mantendo os mesmos caminhos (`/api/v1/...`). Exemplos:
+
+| Serviço | Rota via Traefik |
+|---------|------------------|
+| Auth Service | `http://api.localhost/api/v1/auth/login` |
+| Students Service | `http://api.localhost/api/v1/students` |
+| Rooms Service | `http://api.localhost/api/v1/rooms` |
+| Check-in Service | `http://api.localhost/api/v1/checkin` |
+| Analytics Service | `http://api.localhost/api/v1/analytics` |
+
+Traefik Dashboard: `http://traefik.localhost:8080`
+
+## 🌐 Portas Diretas dos Serviços
 
 - **Auth Service:** http://localhost:3000
 - **Students Service:** http://localhost:3001
-- **Spaces Service:** http://localhost:3002
-- **Analytics Service:** http://localhost:3003
-- **Frontend:** http://localhost:5173
+- **Rooms Service:** http://localhost:3002
+- **Check-in Service:** http://localhost:3003
+- **Analytics Service:** http://localhost:3004
+- **Frontend Admin:** http://localhost:5173
+- **Frontend Student:** http://localhost:5174
 - **Grafana:** http://localhost:3001 (admin/admin)
 - **Prometheus:** http://localhost:9090
 

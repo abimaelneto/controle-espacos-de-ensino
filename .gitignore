@@ -67,3 +67,6 @@ temp/
 docs_ia/
 
 *.md
+
+**/test-results/
+**/playwright-report/
