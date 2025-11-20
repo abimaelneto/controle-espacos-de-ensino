@@ -1,8 +1,10 @@
 import axios from 'axios';
 import type { CheckInRequest, CheckInResponse, CheckInHistory } from '@/types/checkin';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3004/api/v1';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,9 +23,6 @@ export const checkInService = {
     return response.data;
   },
 
-  async performCheckOut(checkInId: string): Promise<void> {
-    await api.post(`/v1/checkin/${checkInId}/checkout`);
-  },
 
   async validateStudent(identificationMethod: string, value: string): Promise<boolean> {
     try {

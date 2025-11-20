@@ -35,27 +35,37 @@ export default function CheckIn() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-secondary/5">
+    <div className="min-h-screen bg-gradient-to-br from-[#8a0538]/5 via-white to-[#9654ff]/5">
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
+        {/* Header - PUCPR Branding */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">Check-in de Sala</h1>
-          <p className="text-muted-foreground">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-[#8a0538] rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-2xl">P</span>
+            </div>
+            <div className="text-left">
+              <h1 className="text-4xl font-bold text-[#8a0538] mb-1">
+                Check-in de Sala
+              </h1>
+              <p className="text-[#505050] text-sm">PUCPR - Controle de Espaços</p>
+            </div>
+          </div>
+          <p className="text-[#505050]">
             Identifique-se para acessar a sala
           </p>
         </div>
 
-        {/* Informações da Sala */}
-        <Card className="mb-6 max-w-2xl mx-auto">
-          <CardContent className="p-6">
+        {/* Informações da Sala - PUCPR Style */}
+        <Card className="mb-6 max-w-2xl mx-auto border-2 border-[#8a0538]/20">
+          <CardContent className="p-6 bg-gradient-to-r from-[#8a0538]/5 to-[#9654ff]/5">
             <div className="flex items-center justify-center gap-6">
               <div className="flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-muted-foreground" />
-                <span className="font-medium">Sala: {roomNumber}</span>
+                <Building2 className="h-5 w-5 text-[#8a0538]" />
+                <span className="font-semibold text-[#8a0538]">Sala: {roomNumber}</span>
               </div>
               <div className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">
+                <Clock className="h-5 w-5 text-[#505050]" />
+                <span className="text-sm text-[#505050]">
                   {new Date().toLocaleString('pt-BR')}
                 </span>
               </div>

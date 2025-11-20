@@ -8,14 +8,18 @@ export default {
   theme: {
     extend: {
       colors: {
+        'pucpr-purple': '#8a0538',
+        'pucpr-red': '#ff0040',
+        'pucpr-bordeaux': '#9654ff',
+        'pucpr-gray-dark': '#505050',
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: '#8a0538',
+          foreground: '#ffffff',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',

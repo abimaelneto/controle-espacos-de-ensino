@@ -100,10 +100,10 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Check-in - Sala {roomNumber}</CardTitle>
-        <CardDescription>
+    <Card className="w-full max-w-2xl mx-auto border-2 border-[#8a0538]/20 shadow-lg">
+      <CardHeader className="bg-gradient-to-r from-[#8a0538] to-[#6d0429] text-white rounded-t-lg">
+        <CardTitle className="text-white">Check-in - Sala {roomNumber}</CardTitle>
+        <CardDescription className="text-white/90">
           Escolha o método de identificação e informe seus dados
         </CardDescription>
       </CardHeader>
@@ -128,8 +128,8 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
                     className={`
                       flex items-center gap-2 p-4 rounded-lg border-2 transition-all
                       ${isSelected
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
+                        ? 'border-[#8a0538] bg-[#8a0538]/10 text-[#8a0538]'
+                        : 'border-gray-200 hover:border-[#8a0538]/50 text-[#505050]'
                       }
                     `}
                   >
@@ -224,30 +224,30 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
             </div>
           )}
 
-          {/* Mensagem de Erro */}
+          {/* Mensagem de Erro - PUCPR Style */}
           {error && (
-            <div className="p-4 bg-destructive/10 border border-destructive rounded-lg">
-              <div className="flex items-center gap-2 text-destructive">
+            <div className="p-4 bg-[#ff0040]/10 border-2 border-[#ff0040] rounded-lg">
+              <div className="flex items-center gap-2 text-[#ff0040]">
                 <XCircle className="h-5 w-5" />
                 <span className="font-medium">{error}</span>
               </div>
             </div>
           )}
 
-          {/* Mensagem de Sucesso */}
+          {/* Mensagem de Sucesso - PUCPR Style */}
           {success && (
-            <div className="p-4 bg-green-500/10 border border-green-500 rounded-lg">
-              <div className="flex items-center gap-2 text-green-700 dark:text-green-400">
+            <div className="p-4 bg-[#8a0538]/10 border-2 border-[#8a0538] rounded-lg">
+              <div className="flex items-center gap-2 text-[#8a0538]">
                 <CheckCircle2 className="h-5 w-5" />
-                <span className="font-medium">Check-in realizado com sucesso!</span>
+                <span className="font-semibold">Check-in realizado com sucesso!</span>
               </div>
             </div>
           )}
 
-          {/* Botão de Submit */}
+          {/* Botão de Submit - PUCPR Style */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full bg-[#8a0538] hover:bg-[#6d0429] text-white"
             size="lg"
             disabled={loading || !value || !validateInput(method, value)}
           >

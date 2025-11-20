@@ -1,55 +1,83 @@
+import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, Building2, BarChart3 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Home, Users, DoorOpen, BarChart } from 'lucide-react';
+import { Button } from './ui/button';
+import { Card } from './ui/card';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
 
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-    { path: '/students', label: 'Alunos', icon: Users },
-    { path: '/rooms', label: 'Salas', icon: Building2 },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
-  ];
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="border-b">
-        <div className="flex h-16 items-center px-4">
-          <h1 className="text-xl font-bold">Controle de Espaços - Admin</h1>
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Sidebar - PUCPR Branding */}
+      <aside className="w-64 bg-[#8a0538] text-white shadow-lg">
+        <div className="p-6 border-b border-[#6d0429]">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+              <span className="text-[#8a0538] font-bold text-lg">P</span>
+            </div>
+            <div>
+              <div className="text-xl font-bold">PUCPR</div>
+              <div className="text-xs text-white/80">Controle de Espaços</div>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="flex">
-        <aside className="w-64 border-r min-h-[calc(100vh-4rem)]">
-          <nav className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    'flex items-center gap-3 px-4 py-2 rounded-md transition-colors',
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'hover:bg-accent',
-                  )}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-        </aside>
-        <main className="flex-1 p-8">{children}</main>
-      </div>
+        <nav className="p-4 space-y-1">
+          <Link to="/">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-white hover:bg-white/10 ${
+                isActive('/') ? 'bg-white/20' : ''
+              }`}
+            >
+              <Home className="mr-2 h-4 w-4" /> Dashboard
+            </Button>
+          </Link>
+          <Link to="/students">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-white hover:bg-white/10 ${
+                isActive('/students') ? 'bg-white/20' : ''
+              }`}
+            >
+              <Users className="mr-2 h-4 w-4" /> Alunos
+            </Button>
+          </Link>
+          <Link to="/rooms">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-white hover:bg-white/10 ${
+                isActive('/rooms') ? 'bg-white/20' : ''
+              }`}
+            >
+              <DoorOpen className="mr-2 h-4 w-4" /> Salas
+            </Button>
+          </Link>
+          <Link to="/analytics">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-white hover:bg-white/10 ${
+                isActive('/analytics') ? 'bg-white/20' : ''
+              }`}
+            >
+              <BarChart className="mr-2 h-4 w-4" /> Analytics
+            </Button>
+          </Link>
+        </nav>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 p-6">
+        <Card className="p-6 bg-white shadow-sm">{children}</Card>
+      </main>
     </div>
   );
-}
+};
 
+export default Layout;

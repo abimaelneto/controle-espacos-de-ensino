@@ -29,7 +29,5 @@ export interface CheckInHistory {
   studentId: string;
   studentName: string;
   checkInTime: Date;
-  checkOutTime?: Date;
-  status: 'ACTIVE' | 'COMPLETED';
 }
 
