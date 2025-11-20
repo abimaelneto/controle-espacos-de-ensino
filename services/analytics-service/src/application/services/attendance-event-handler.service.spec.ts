@@ -1,10 +1,12 @@
 import { AttendanceEventHandlerService } from './attendance-event-handler.service';
 import { IMetricRepository } from '../../domain/ports/repositories/metric.repository.port';
 import { IDomainEvent } from '../../domain/events/domain-event.interface';
+import { BusinessMetricsService } from '../../infrastructure/metrics/business-metrics.service';
 
 describe('AttendanceEventHandlerService', () => {
   let service: AttendanceEventHandlerService;
   let metricRepository: jest.Mocked<IMetricRepository>;
+  let businessMetrics: jest.Mocked<BusinessMetricsService>;
 
   beforeEach(() => {
     metricRepository = {
@@ -14,7 +16,17 @@ describe('AttendanceEventHandlerService', () => {
       getAggregatedMetrics: jest.fn(),
     } as any;
 
-    service = new AttendanceEventHandlerService(metricRepository);
+    businessMetrics = {
+      incrementCheckIns: jest.fn(),
+      trackStudent: jest.fn(),
+      updateRoomLastCheckIn: jest.fn(),
+      getRegistry: jest.fn(),
+    } as unknown as jest.Mocked<BusinessMetricsService>;
+
+    service = new AttendanceEventHandlerService(
+      metricRepository,
+      businessMetrics,
+    );
   });
 
   describe('handleAttendanceCheckedIn', () => {
@@ -35,6 +47,14 @@ describe('AttendanceEventHandlerService', () => {
       await service.handleAttendanceCheckedIn(event);
 
       expect(metricRepository.save).toHaveBeenCalled();
+      expect(businessMetrics.incrementCheckIns).toHaveBeenCalledWith(
+        'room-456',
+      );
+      expect(businessMetrics.trackStudent).toHaveBeenCalledWith('student-123');
+      expect(businessMetrics.updateRoomLastCheckIn).toHaveBeenCalledWith(
+        'room-456',
+        expect.any(Number),
+      );
     });
   });
 

@@ -1,10 +1,13 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
   UnauthorizedException,
+  Headers,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthenticateUserUseCase } from '../../../application/use-cases/authenticate-user.use-case';
@@ -12,6 +15,7 @@ import { CreateUserUseCase } from '../../../application/use-cases/create-user.us
 import { JwtService } from '../../../application/services/jwt.service';
 import { LoginDto } from '../../../application/dto/login.dto';
 import { CreateUserDto } from '../../../application/dto/create-user.dto';
+import { Request } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -67,6 +71,32 @@ export class AuthController {
         email: user.getEmail().toString(),
         role: user.getRole().getValue(),
       },
+    };
+  }
+
+  @Get('validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Validar token JWT (para API Gateway)' })
+  @ApiResponse({ status: 200, description: 'Token válido' })
+  @ApiResponse({ status: 401, description: 'Token inválido' })
+  async validate(@Headers('authorization') authorization: string) {
+    if (!authorization || !authorization.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Token não fornecido');
+    }
+
+    const token = authorization.substring(7);
+    const payload = this.jwtService.verifyAccessToken(token);
+
+    if (!payload) {
+      throw new UnauthorizedException('Token inválido');
+    }
+
+    // Retornar headers que o Traefik vai adicionar à requisição
+    return {
+      valid: true,
+      userId: payload.sub,
+      userRole: payload.role,
+      email: payload.email,
     };
   }
 }

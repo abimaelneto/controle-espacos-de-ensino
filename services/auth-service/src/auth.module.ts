@@ -2,11 +2,14 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { AdaptersModule } from './infrastructure/providers/adapters.provider';
 import { UserEntity } from './infrastructure/adapters/persistence/mysql/user.entity';
 import { MySQLUserRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-user.repository.adapter';
 import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-publisher.adapter';
+import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
 import { AuthenticationService } from './domain/services/authentication.service';
 import { AuthenticateUserUseCase } from './application/use-cases/authenticate-user.use-case';
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
@@ -38,6 +41,12 @@ import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
       }),
       inject: [ConfigService],
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60,
+        limit: 10,
+      },
+    ]),
   ],
   controllers: [AuthController, MetricsController],
   providers: [
@@ -49,6 +58,14 @@ import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
     {
       provide: 'EVENT_PUBLISHER',
       useFactory: (config: ConfigService) => {
+        const disabledValue =
+          (process.env.KAFKA_DISABLED ??
+            config.get<string>('KAFKA_DISABLED')) || 'false';
+        const disabled = disabledValue.toLowerCase() === 'true';
+        if (disabled) {
+          return new NoopEventPublisherAdapter();
+        }
+
         return new KafkaEventPublisherAdapter(
           config.get<string>('KAFKA_BROKERS', 'localhost:9092'),
         );
@@ -83,6 +100,10 @@ import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
     },
     // Application Services
     JwtService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
   exports: ['USER_REPOSITORY', 'EVENT_PUBLISHER'],
 })

@@ -25,6 +25,10 @@
     "test:redis": "ts-node src/infrastructure/scripts/test-redis.ts"
   },
   "dependencies": {
+    "@controle-espacos/analytics-service": "^1.0.0",
+    "@controle-espacos/checkin-service": "^1.0.0",
+    "@controle-espacos/rooms-service": "^1.0.0",
+    "@controle-espacos/students-service": "^1.0.0",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",
     "@nestjs/core": "^10.3.0",
@@ -32,10 +36,12 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/swagger": "^7.1.17",
+    "@nestjs/throttler": "^6.4.0",
     "@nestjs/typeorm": "^10.0.1",
     "bcrypt": "^5.1.1",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
+    "helmet": "^8.1.0",
     "ioredis": "^5.3.2",
     "kafkajs": "^2.2.4",
     "mysql2": "^3.6.5",

@@ -10,6 +10,7 @@ import { MetricEntity } from './infrastructure/adapters/persistence/mysql/metric
 import { KafkaEventConsumerAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-consumer.adapter';
 import { AttendanceEventsConsumer } from './infrastructure/consumers/attendance-events.consumer';
 import { AttendanceEventHandlerService } from './application/services/attendance-event-handler.service';
+import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
 import type { IMetricRepository } from './domain/ports/repositories/metric.repository.port';
 import type { IEventConsumer } from './domain/ports/messaging/event-consumer.port';
 
@@ -41,6 +42,7 @@ const EVENT_CONSUMER = 'EVENT_CONSUMER';
       useClass: KafkaEventConsumerAdapter,
     },
     KafkaEventConsumerAdapter,
+    BusinessMetricsService,
     AttendanceEventHandlerService,
     AttendanceEventsConsumer,
     {
