@@ -167,6 +167,7 @@ services:
     volumes:
       - grafana-data:/var/lib/grafana
       - ./infrastructure/docker/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/docker/grafana/dashboards:/etc/grafana/provisioning/dashboards
     networks:
       - app-network
     depends_on:

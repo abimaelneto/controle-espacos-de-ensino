@@ -12,6 +12,7 @@ import { AuthenticateUserUseCase } from './application/use-cases/authenticate-us
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
 import { JwtService } from './application/services/jwt.service';
 import { AuthController } from './presentation/http/controllers/auth.controller';
+import { MetricsController } from './presentation/http/controllers/metrics.controller';
 import { IUserRepository } from './domain/ports/repositories/user.repository.port';
 import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
 
@@ -38,7 +39,7 @@ import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, MetricsController],
   providers: [
     // Adapters
     {

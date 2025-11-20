@@ -19,7 +19,7 @@
     "dev:students": "cd services/students-service && npm run start:dev",
     "dev:spaces": "cd services/spaces-service && npm run start:dev",
     "dev:analytics": "cd services/analytics-service && npm run start:dev",
-    "dev:frontend": "cd frontend/web-app && npm run dev",
+    "dev:frontend": "cd frontend/admin && npm run dev",
     "test": "npm run test --workspaces",
     "build": "npm run build --workspaces",
     "lint": "npm run lint --workspaces"
