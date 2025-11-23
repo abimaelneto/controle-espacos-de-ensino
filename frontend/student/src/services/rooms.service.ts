@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_ROOMS_API_URL || 'http://localhost:3003/api/v1';
+const API_BASE_URL = import.meta.env.VITE_ROOMS_API_URL || 'http://localhost:3002/api/v1';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -17,12 +17,12 @@ export interface Room {
 
 export const roomsService = {
   async getRoom(roomId: string): Promise<Room> {
-    const response = await api.get<Room>(`/v1/rooms/${roomId}`);
+    const response = await api.get<Room>(`/rooms/${roomId}`);
     return response.data;
   },
 
   async getRooms(): Promise<Room[]> {
-    const response = await api.get<Room[]>('/v1/rooms');
+    const response = await api.get<Room[]>('/rooms');
     return response.data;
   },
 };

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import type { CheckInRequest, CheckInResponse, CheckInHistory } from '@/types/checkin';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3004/api/v1';
+const API_BASE_URL = import.meta.env.VITE_CHECKIN_API_URL || 'http://localhost:3003';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -10,30 +10,61 @@ const api = axios.create({
   },
 });
 
+export interface ActiveAttendance {
+  attendanceId: string;
+  studentId: string;
+  roomId: string;
+  roomNumber?: string;
+  checkInTime: Date;
+}
+
+export interface CheckOutRequest {
+  identificationMethod: 'CPF' | 'MATRICULA' | 'QR_CODE' | 'BIOMETRIC';
+  identificationValue: string;
+}
+
+export interface CheckOutResponse {
+  success: boolean;
+  message: string;
+  attendanceId?: string;
+}
+
 export const checkInService = {
   async performCheckIn(request: CheckInRequest): Promise<CheckInResponse> {
-    const response = await api.post<CheckInResponse>('/v1/checkin', request);
+    const response = await api.post<CheckInResponse>('/api/v1/checkin', request);
     return response.data;
   },
 
   async getCheckInHistory(studentId: string): Promise<CheckInHistory[]> {
     const response = await api.get<CheckInHistory[]>(
-      `/v1/checkin/history/${studentId}`,
+      `/api/v1/checkin/history/${studentId}`,
     );
     return response.data;
   },
 
-
-  async validateStudent(identificationMethod: string, value: string): Promise<boolean> {
+  async getActiveAttendance(
+    method: string,
+    value: string,
+  ): Promise<ActiveAttendance | null> {
     try {
-      const response = await api.post('/v1/students/validate', {
-        method: identificationMethod,
-        value,
-      });
-      return response.data.valid;
-    } catch {
-      return false;
+      const response = await api.get<ActiveAttendance | null>(
+        `/api/v1/checkin/active`,
+        {
+          params: { method, value },
+        },
+      );
+      return response.data;
+    } catch (error) {
+      return null;
     }
+  },
+
+  async performCheckOut(request: CheckOutRequest): Promise<CheckOutResponse> {
+    const response = await api.post<CheckOutResponse>(
+      '/api/v1/checkin/checkout',
+      request,
+    );
+    return response.data;
   },
 };
 
