@@ -14,11 +14,15 @@ import { RoomValidationService } from './domain/services/room-validation.service
 import { MySQLRoomRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-room.repository.adapter';
 import { RoomEntity } from './infrastructure/adapters/persistence/mysql/room.entity';
 import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-publisher.adapter';
+import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
 import type { IRoomRepository } from './domain/ports/repositories/room.repository.port';
 import type { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
 
 const ROOM_REPOSITORY = 'ROOM_REPOSITORY';
 const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
+
+const isTrue = (value?: string | null) =>
+  (value ?? '').toString().toLowerCase() === 'true';
 
 @Module({
   imports: [
@@ -42,7 +46,19 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     },
     {
       provide: EVENT_PUBLISHER,
-      useClass: KafkaEventPublisherAdapter,
+      useFactory: (config: ConfigService) => {
+        const disabled = isTrue(
+          (process.env.KAFKA_DISABLED ??
+            config.get<string>('KAFKA_DISABLED')) || 'false',
+        );
+
+        if (disabled) {
+          return new NoopEventPublisherAdapter();
+        }
+
+        return new KafkaEventPublisherAdapter(config);
+      },
+      inject: [ConfigService],
     },
     MySQLRoomRepositoryAdapter,
     KafkaEventPublisherAdapter,

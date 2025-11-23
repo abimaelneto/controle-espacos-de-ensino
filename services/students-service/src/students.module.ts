@@ -16,11 +16,15 @@ import { StudentValidationService } from './domain/services/student-validation.s
 import { MySQLStudentRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-student.repository.adapter';
 import { StudentEntity } from './infrastructure/adapters/persistence/mysql/student.entity';
 import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-publisher.adapter';
+import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
 import type { IStudentRepository } from './domain/ports/repositories/student.repository.port';
 import type { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
 
 const STUDENT_REPOSITORY = 'STUDENT_REPOSITORY';
 const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
+
+const isTrue = (value?: string | null) =>
+  (value ?? '').toString().toLowerCase() === 'true';
 
 @Module({
   imports: [
@@ -44,7 +48,19 @@ const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
     },
     {
       provide: EVENT_PUBLISHER,
-      useClass: KafkaEventPublisherAdapter,
+      useFactory: (config: ConfigService) => {
+        const disabled = isTrue(
+          (process.env.KAFKA_DISABLED ??
+            config.get<string>('KAFKA_DISABLED')) || 'false',
+        );
+
+        if (disabled) {
+          return new NoopEventPublisherAdapter();
+        }
+
+        return new KafkaEventPublisherAdapter(config);
+      },
+      inject: [ConfigService],
     },
     MySQLStudentRepositoryAdapter,
     KafkaEventPublisherAdapter,
