@@ -1,6 +1,6 @@
 import { Controller, Get, Header } from '@nestjs/common';
 import { register } from 'prom-client';
-import { BusinessMetricsService } from '../../infrastructure/metrics/business-metrics.service';
+import { BusinessMetricsService } from '../../../infrastructure/metrics/business-metrics.service';
 
 @Controller('metrics')
 export class MetricsController {
