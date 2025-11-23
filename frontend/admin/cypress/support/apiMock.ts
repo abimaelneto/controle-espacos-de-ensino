@@ -85,10 +85,18 @@ let roomsState: RoomMock[] = [...defaultRooms];
 export function mockStudentsApi(initial = defaultStudents) {
   studentsState = initial.map((student) => ({ ...student }));
 
-  // Mock GET /students
-  cy.intercept('GET', /.*\/students[^/]*$/, {
-    statusCode: 200,
-    body: studentsState,
+  // Mock GET /students - NÃO interceptar se for HTML (página)
+  cy.intercept('GET', /.*\/students[^/]*$/, (req) => {
+    // Verificar se é uma requisição de API (não HTML)
+    const acceptHeader = req.headers['accept'] || '';
+    if (acceptHeader.includes('text/html')) {
+      req.continue();
+      return;
+    }
+    req.reply({
+      statusCode: 200,
+      body: studentsState,
+    });
   }).as('getStudents');
 
   // Mock POST /students
@@ -177,10 +185,18 @@ export function mockStudentsApi(initial = defaultStudents) {
 export function mockRoomsApi(initial = defaultRooms) {
   roomsState = initial.map((room) => ({ ...room }));
 
-  // Mock GET /rooms
-  cy.intercept('GET', /.*\/rooms[^/]*$/, {
-    statusCode: 200,
-    body: roomsState,
+  // Mock GET /rooms - NÃO interceptar se for HTML (página)
+  cy.intercept('GET', /.*\/rooms[^/]*$/, (req) => {
+    // Verificar se é uma requisição de API (não HTML)
+    const acceptHeader = req.headers['accept'] || '';
+    if (acceptHeader.includes('text/html')) {
+      req.continue();
+      return;
+    }
+    req.reply({
+      statusCode: 200,
+      body: roomsState,
+    });
   }).as('getRooms');
 
   // Mock POST /rooms
