@@ -1,5 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { MetricEntity } from '../adapters/persistence/mysql/metric.entity'; // Import the entity
 
 export const getDatabaseConfig = (
   config: ConfigService,
@@ -13,7 +14,7 @@ export const getDatabaseConfig = (
     username: config.get<string>('DATABASE_USER'),
     password: config.get<string>('DATABASE_PASSWORD'),
     database: config.get<string>('DATABASE_NAME'),
-    entities: [__dirname + '/../adapters/persistence/**/*.entity.ts'],
+    entities: [MetricEntity], // Corrected: Use the imported entity class
     migrations: [__dirname + '/../migrations/*.ts'],
     migrationsRun: false,
     synchronize:
