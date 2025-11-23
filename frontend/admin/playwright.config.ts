@@ -54,22 +54,20 @@ export default defineConfig({
   ],
 
   webServer: {
+    // CRÍTICO: O problema é que o Playwright verifica apenas se a URL retorna 200,
+    // mas o Vite pode retornar 200 antes de estar pronto para processar módulos TypeScript.
+    // 
+    // Solução: O Playwright inicia o Vite e verifica se a URL retorna 200.
+    // Mas precisamos aguardar mais tempo para o Vite processar os módulos.
+    // Vamos aumentar o timeout e adicionar um delay no helper gotoAndWaitForApp.
     command: 'npm run dev',
     url: WEB_SERVER_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
-    // CRÍTICO: O Playwright verifica apenas se a URL retorna 200,
-    // mas o Vite pode retornar 200 antes de estar pronto para processar módulos TypeScript.
-    // Vamos usar stdout para detectar quando o Vite está realmente pronto.
-    // O Vite imprime "Local: http://localhost:5173" quando está pronto,
-    // mas também precisamos aguardar que ele processe os módulos.
-    stdout: (line) => {
-      // O Vite imprime a URL quando está pronto
-      if (line.includes('Local:') || line.includes('5173')) {
-        console.log('[webServer] Vite iniciou, aguardando processamento de módulos...');
-      }
-    },
+    stdout: 'pipe',
     stderr: 'pipe',
+    // Aguardar um pouco mais após o servidor retornar 200
+    // O Vite precisa de tempo para processar módulos TypeScript
   },
 });
 
