@@ -50,20 +50,7 @@
     "perf:cleanup": "node tests/performance/scripts/cleanup-data.js",
     "perf:generate-metrics": "node tests/performance/scripts/generate-metrics.js",
     "perf:generate-metrics:continuous": "node tests/performance/scripts/generate-metrics-continuous.js",
-    "perf:stress:realistic": "node tests/performance/scripts/generate-stress-realistic.js",
-    "k8s:start": "bash scripts/k8s-start.sh",
-    "k8s:stop": "bash scripts/k8s-stop.sh",
-    "k8s:status": "kubectl get pods,services,ingress -n controle-espacos",
-    "k8s:logs": "kubectl logs -f -n controle-espacos",
-    "k8s:setup": "cd infrastructure/kubernetes && ./scripts/setup-complete.sh",
-    "k8s:cleanup": "cd infrastructure/kubernetes && ./scripts/cleanup.sh",
-    "k8s:build-images": "cd infrastructure/kubernetes && ./scripts/build-and-load-images.sh",
-    "k8s:apply": "cd infrastructure/kubernetes && ./scripts/apply-manifests.sh",
-    "k8s:test": "cd infrastructure/kubernetes && ./scripts/test-k8s.sh",
-    "terraform:init": "cd infrastructure/terraform/environments/cloud && terraform init",
-    "terraform:plan": "cd infrastructure/terraform/environments/cloud && terraform plan",
-    "terraform:apply": "cd infrastructure/terraform/environments/cloud && terraform apply",
-    "terraform:destroy": "cd infrastructure/terraform/environments/cloud && terraform destroy"
+    "perf:stress:realistic": "node tests/performance/scripts/generate-stress-realistic.js"
   },
   "keywords": [
     "pucpr",
