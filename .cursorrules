@@ -1,2 +1,3 @@
 Jogue os docs mds criados em docs_ia, a não ser que eu explicite diferente
 Sempre use TDD
+Cuidado para não ficar mandando vários comandos echo sem executar nada. Só polui a tela, e o terminal, e não agrega nenhum valor
