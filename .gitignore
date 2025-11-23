@@ -67,7 +67,12 @@ temp/
 
 docs_ia/
 
-*.md
+# Cursor/IA specific files
+.cursorrules
+
+# Backup files
+*.bak
+.env.local.bak
 
 **/test-results/
 **/playwright-report/
