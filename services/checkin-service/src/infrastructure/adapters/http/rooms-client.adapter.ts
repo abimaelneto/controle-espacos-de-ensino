@@ -14,7 +14,7 @@ export class RoomsClientAdapter implements IRoomsClient {
   ) {
     this.baseUrl =
       this.configService.get<string>('ROOMS_SERVICE_URL') ||
-      'http://localhost:3003/api/v1';
+      'http://localhost:3002/api/v1';
   }
 
   async getRoom(roomId: string): Promise<RoomInfo | null> {

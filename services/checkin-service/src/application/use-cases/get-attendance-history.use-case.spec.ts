@@ -16,6 +16,9 @@ describe('GetAttendanceHistoryUseCase', () => {
       countActiveByRoom: jest.fn(),
       countByRoomAndDate: jest.fn(),
       save: jest.fn(),
+      saveWithCapacityCheck: jest.fn(),
+      findByIdempotencyKey: jest.fn(),
+      delete: jest.fn(),
     };
 
     useCase = new GetAttendanceHistoryUseCase(attendanceRepository);

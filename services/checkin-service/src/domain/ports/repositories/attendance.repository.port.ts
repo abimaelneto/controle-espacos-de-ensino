@@ -12,5 +12,12 @@ export interface IAttendanceRepository {
   countActiveByRoom(roomId: string): Promise<number>;
   countByRoomAndDate(roomId: string, date: Date): Promise<number>;
   save(attendance: Attendance): Promise<void>;
+  saveWithCapacityCheck(
+    attendance: Attendance,
+    roomId: string,
+    maxCapacity: number,
+  ): Promise<{ success: boolean; reason?: string }>;
+  findByIdempotencyKey(idempotencyKey: string): Promise<Attendance | null>;
+  delete(id: string): Promise<void>;
 }
 

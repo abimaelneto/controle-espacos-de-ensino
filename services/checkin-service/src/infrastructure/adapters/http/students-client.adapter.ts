@@ -14,7 +14,7 @@ export class StudentsClientAdapter implements IStudentsClient {
   ) {
     this.baseUrl =
       this.configService.get<string>('STUDENTS_SERVICE_URL') ||
-      'http://localhost:3002/api/v1';
+      'http://localhost:3001/api/v1';
   }
 
   async findStudentByCPF(cpf: string): Promise<StudentInfo | null> {

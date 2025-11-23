@@ -45,7 +45,8 @@ export class CheckInValidationService {
       };
     }
 
-    // 3. Validar se aluno já tem check-in hoje (evitar múltiplos check-ins no mesmo dia)
+    // 3. Validar se aluno já tem check-in hoje em OUTRA sala
+    // Se estiver na mesma sala, permitir (pode ser um novo check-in do mesmo dia)
     const activeAttendance =
       await this.attendanceRepository.findActiveByStudent(studentId);
     if (activeAttendance) {
@@ -54,11 +55,11 @@ export class CheckInValidationService {
       const checkInDate = new Date(activeAttendance.getCheckInTime());
       checkInDate.setHours(0, 0, 0, 0);
 
-      // Se já fez check-in hoje, não permitir novo check-in
-      if (checkInDate.getTime() === today.getTime()) {
+      // Se já fez check-in hoje em OUTRA sala, não permitir novo check-in
+      if (checkInDate.getTime() === today.getTime() && activeAttendance.getRoomId() !== roomId) {
         return {
           valid: false,
-          reason: `Aluno já possui um check-in registrado hoje na sala ${activeAttendance.getRoomId()}`,
+          reason: `Você já possui um check-in ativo em outra sala. Faça checkout primeiro para fazer check-in nesta sala.`,
         };
       }
     }
