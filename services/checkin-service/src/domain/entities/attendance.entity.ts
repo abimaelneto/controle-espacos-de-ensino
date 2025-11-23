@@ -5,6 +5,7 @@ export class Attendance {
   private studentId: string;
   private roomId: string;
   private checkInTime: Date;
+  private idempotencyKey: string | null;
   private createdAt: Date;
   private updatedAt: Date;
 
@@ -13,6 +14,7 @@ export class Attendance {
     studentId: string,
     roomId: string,
     checkInTime: Date,
+    idempotencyKey: string | null,
     createdAt: Date,
     updatedAt: Date,
   ) {
@@ -20,17 +22,19 @@ export class Attendance {
     this.studentId = studentId;
     this.roomId = roomId;
     this.checkInTime = checkInTime;
+    this.idempotencyKey = idempotencyKey;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }
 
-  static checkIn(studentId: string, roomId: string): Attendance {
+  static checkIn(studentId: string, roomId: string, idempotencyKey?: string): Attendance {
     const now = new Date();
     return new Attendance(
       randomUUID(),
       studentId,
       roomId,
       now,
+      idempotencyKey || null,
       now,
       now,
     );
@@ -41,6 +45,7 @@ export class Attendance {
     studentId: string,
     roomId: string,
     checkInTime: Date,
+    idempotencyKey: string | null,
     createdAt: Date,
     updatedAt: Date,
   ): Attendance {
@@ -49,6 +54,7 @@ export class Attendance {
       studentId,
       roomId,
       checkInTime,
+      idempotencyKey,
       createdAt,
       updatedAt,
     );
@@ -77,5 +83,9 @@ export class Attendance {
 
   getUpdatedAt(): Date {
     return this.updatedAt;
+  }
+
+  getIdempotencyKey(): string | null {
+    return this.idempotencyKey;
   }
 }

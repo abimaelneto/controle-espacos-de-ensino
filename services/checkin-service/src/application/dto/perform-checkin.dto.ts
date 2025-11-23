@@ -2,17 +2,19 @@ import {
   IsNotEmpty,
   IsString,
   IsIn,
+  IsOptional,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PerformCheckInDto {
   @ApiProperty({
     example: 'student-123',
-    description: 'ID do aluno (será resolvido pelo método de identificação)',
+    description: 'ID do aluno (será resolvido pelo método de identificação se não fornecido)',
+    required: false,
   })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  studentId: string;
+  studentId?: string;
 
   @ApiProperty({
     example: 'room-456',
@@ -38,5 +40,14 @@ export class PerformCheckInDto {
   @IsString()
   @IsNotEmpty()
   identificationValue: string;
+
+  @ApiProperty({
+    example: 'req-123e4567-e89b-12d3-a456-426614174000',
+    description: 'Chave de idempotência (opcional, gerada automaticamente se não fornecida)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  idempotencyKey?: string;
 }
 
