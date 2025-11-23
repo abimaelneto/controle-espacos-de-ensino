@@ -1,8 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
-import { IEventConsumer } from '../../../domain/ports/messaging/event-consumer.port';
-import { IDomainEvent } from '../../../domain/events/domain-event.interface';
+import { IEventConsumer } from '../../../../domain/ports/messaging/event-consumer.port';
+import { IDomainEvent } from '../../../../domain/events/domain-event.interface';
+import { EventDeduplicationAdapter } from '../../cache/event-deduplication.adapter';
 
 @Injectable()
 export class KafkaEventConsumerAdapter
@@ -13,7 +14,10 @@ export class KafkaEventConsumerAdapter
   private handlers: Map<string, (event: IDomainEvent) => Promise<void>> =
     new Map();
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @Optional() private readonly deduplicationAdapter?: EventDeduplicationAdapter,
+  ) {
     const brokers = this.configService
       .get<string>('KAFKA_BROKERS', 'localhost:9092')
       .split(',');
@@ -60,6 +64,15 @@ export class KafkaEventConsumerAdapter
             payload: eventData.payload,
             topic: payload.topic,
           };
+
+          // Verificar deduplicação
+          if (this.deduplicationAdapter) {
+            const isNew = await this.deduplicationAdapter.checkAndMark(event);
+            if (!isNew) {
+              console.log(`Skipping duplicate event: ${event.eventType} for ${event.aggregateId}`);
+              return;
+            }
+          }
 
           const handler = this.handlers.get(payload.topic);
           if (handler) {

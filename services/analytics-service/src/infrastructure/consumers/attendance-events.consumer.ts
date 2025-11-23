@@ -1,12 +1,14 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Inject } from '@nestjs/common';
 import { IEventConsumer } from '../../domain/ports/messaging/event-consumer.port';
 import { AttendanceEventHandlerService } from '../../application/services/attendance-event-handler.service';
 import { IDomainEvent } from '../../domain/events/domain-event.interface';
 
+const EVENT_CONSUMER = 'EVENT_CONSUMER';
+
 @Injectable()
 export class AttendanceEventsConsumer implements OnModuleInit {
   constructor(
-    private readonly eventConsumer: IEventConsumer,
+    @Inject(EVENT_CONSUMER) private readonly eventConsumer: IEventConsumer,
     private readonly eventHandler: AttendanceEventHandlerService,
   ) {}
 
@@ -17,6 +19,9 @@ export class AttendanceEventsConsumer implements OnModuleInit {
         switch (event.eventType) {
           case 'AttendanceCheckedIn':
             await this.eventHandler.handleAttendanceCheckedIn(event);
+            break;
+          case 'AttendanceCheckedOut':
+            await this.eventHandler.handleAttendanceCheckedOut(event);
             break;
           default:
             console.warn(`Unknown event type: ${event.eventType}`);
