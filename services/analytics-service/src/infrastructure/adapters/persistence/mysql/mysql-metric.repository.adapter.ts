@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository } from 'typeorm';
 import { IMetricRepository } from '../../../../domain/ports/repositories/metric.repository.port';
 import { UsageMetric } from '../../../../domain/entities/usage-metric.entity';
 import { MetricType } from '../../../../domain/entities/usage-metric.entity';
@@ -33,13 +33,17 @@ export class MySQLMetricRepositoryAdapter implements IMetricRepository {
     startDate?: Date,
     endDate?: Date,
   ): Promise<UsageMetric[]> {
-    const where: any = { metricType: type };
+    const queryBuilder = this.repository.createQueryBuilder('metric')
+      .where('metric.metricType = :type', { type });
 
-    if (startDate && endDate) {
-      where.recordedAt = Between(startDate, endDate);
+    if (startDate) {
+      queryBuilder.andWhere('metric.recordedAt >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('metric.recordedAt <= :endDate', { endDate });
     }
 
-    const entities = await this.repository.find({ where });
+    const entities = await queryBuilder.getMany();
     return entities.map((entity) => this.toDomain(entity));
   }
 
@@ -48,13 +52,17 @@ export class MySQLMetricRepositoryAdapter implements IMetricRepository {
     startDate?: Date,
     endDate?: Date,
   ): Promise<UsageMetric[]> {
-    const where: any = { roomId };
+    const queryBuilder = this.repository.createQueryBuilder('metric')
+      .where('metric.roomId = :roomId', { roomId });
 
-    if (startDate && endDate) {
-      where.recordedAt = Between(startDate, endDate);
+    if (startDate) {
+      queryBuilder.andWhere('metric.recordedAt >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('metric.recordedAt <= :endDate', { endDate });
     }
 
-    const entities = await this.repository.find({ where });
+    const entities = await queryBuilder.getMany();
     return entities.map((entity) => this.toDomain(entity));
   }
 
@@ -63,13 +71,17 @@ export class MySQLMetricRepositoryAdapter implements IMetricRepository {
     startDate?: Date,
     endDate?: Date,
   ): Promise<UsageMetric[]> {
-    const where: any = { studentId };
+    const queryBuilder = this.repository.createQueryBuilder('metric')
+      .where('metric.studentId = :studentId', { studentId });
 
-    if (startDate && endDate) {
-      where.recordedAt = Between(startDate, endDate);
+    if (startDate) {
+      queryBuilder.andWhere('metric.recordedAt >= :startDate', { startDate });
+    }
+    if (endDate) {
+      queryBuilder.andWhere('metric.recordedAt <= :endDate', { endDate });
     }
 
-    const entities = await this.repository.find({ where });
+    const entities = await queryBuilder.getMany();
     return entities.map((entity) => this.toDomain(entity));
   }
 
