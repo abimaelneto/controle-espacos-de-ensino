@@ -2,11 +2,11 @@
 
 Sistema para controle de uso de espaços de ensino com análise de taxa de ocupação.
 
-> **🚀 Quick Start (Kubernetes - Pronto para Produção):** 
+> **🚀 Quick Start (Desenvolvimento Local):** 
 > ```bash
-> npm install && npm run k8s:start
+> npm install && npm run docker:up && npm run seed:all && npm run dev
 > ```
-> Isso inicia tudo no Kubernetes local (kind) - ideal para demonstração!
+> Isso inicia toda a infraestrutura e serviços localmente!
 
 ## 📋 Sobre o Projeto
 
@@ -37,17 +37,13 @@ Desenvolver uma aplicação web para controlar o uso de espaços de ensino, perm
 - Zustand para state management
 - TanStack Query
 
-**Infraestrutura:**
-- **Kubernetes (Kind)** - Containerização e orquestração ⭐ (Requisito da vaga)
-- **Docker Compose** - Desenvolvimento local (Requisito da vaga)
-- **Terraform** - IaC para AWS (Demonstra conhecimento em Cloud - Requisito)
-- **NGINX Ingress** - API Gateway no Kubernetes
-- **Observabilidade** - Prometheus + Grafana (Requisito da vaga)
+**Infraestrutura (Desenvolvimento Local):**
+- **Docker Compose** - Infraestrutura local (MySQL, Kafka, Redis, Prometheus, Grafana)
+- **Observabilidade** - Prometheus + Grafana para métricas e monitoramento
 
 **Observabilidade:**
 - Prometheus (métricas)
 - Grafana (visualização)
-- Winston/CloudWatch (logs)
 
 ### Microsserviços
 
@@ -63,47 +59,8 @@ Desenvolver uma aplicação web para controlar o uso de espaços de ensino, perm
 - Node.js 20 LTS ou superior
 - Docker e Docker Compose
 - npm ou yarn
-- **Para Kubernetes (recomendado para demonstração):** kind e kubectl
 
-### Opção 1: Kubernetes Local (Recomendado para Demonstração/Produção) ⭐
-
-Ideal para demonstrar que o sistema está pronto para produção:
-
-```bash
-# 1. Clone e instale dependências
-git clone <repository-url>
-cd controle-espacos-de-ensino
-npm install
-
-# 2. Inicie tudo no Kubernetes (um comando só!)
-npm run k8s:start
-```
-
-Isso irá:
-- Criar cluster Kubernetes local (kind)
-- Buildar imagens Docker de todos os serviços
-- Deployar toda a infraestrutura (MySQL, Kafka, Redis, etc.)
-- Deployar todos os microsserviços
-- Configurar Ingress para acesso externo
-
-**Acesse os serviços:**
-- `http://api.localhost/api/v1/auth/health`
-- `http://api.localhost/api/v1/students`
-- `http://api.localhost/api/v1/rooms`
-- `http://api.localhost/api/v1/checkin`
-- `http://api.localhost/api/v1/analytics`
-
-**Comandos úteis:**
-```bash
-npm run k8s:status    # Ver status de pods e serviços
-npm run k8s:stop     # Parar e remover cluster
-kubectl get pods -n controle-espacos  # Ver pods
-kubectl logs -f <pod-name> -n controle-espacos  # Ver logs
-```
-
-### Opção 2: Docker Compose + Desenvolvimento Local
-
-Para desenvolvimento rápido:
+### Como Começar (Desenvolvimento Local)
 
 ```bash
 # 1. Clone e instale dependências
@@ -114,23 +71,23 @@ npm install
 # 2. Suba a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
 npm run docker:up
 
-# 3. Configure variáveis de ambiente
-# Crie arquivos .env.local em cada serviço
-
-# 4. Execute migrations e seeds
+# 3. Execute migrations e seeds
 npm run seed:all
 
-# 5. Inicie todos os serviços
+# 4. Inicie todos os serviços
 npm run dev
 ```
 
-**Acesso direto por porta (sem gateway):**
+**Acesso aos serviços:**
 - Auth Service: `http://localhost:3000/api/v1/auth`
 - Students Service: `http://localhost:3001/api/v1/students`
 - Rooms Service: `http://localhost:3002/api/v1/rooms`
 - Check-in Service: `http://localhost:3003/api/v1/checkin`
 - Analytics Service: `http://localhost:3004/api/v1/analytics`
 - Frontend Admin: `http://localhost:5173`
+- Frontend Student: `http://localhost:5174`
+- Grafana: `http://localhost:3001` (admin/admin)
+- Prometheus: `http://localhost:9090`
 
 **Alternativa:** Rodar serviços individuais:
 ```bash
@@ -139,45 +96,53 @@ npm run dev:students  # Apenas Students Service
 npm run dev:spaces    # Apenas Rooms Service
 npm run dev:checkin   # Apenas Check-in Service
 npm run dev:analytics # Apenas Analytics Service
-npm run dev:frontend  # Apenas Frontend
+npm run dev:frontend  # Apenas Frontend Admin
+npm run dev:student   # Apenas Frontend Student
 ```
 
-**Nota**: Docker Compose não inclui API Gateway. Para produção/demonstração, use Kubernetes.
+> **📘 Para produção:** Veja [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md)
 
 ## 📚 Documentação
 
+### 🚀 Início Rápido
+- [Desenvolvimento Local](./docs/setup/LOCAL_DEVELOPMENT.md) - Setup e workflow local
+- [Guia de Demonstração](./docs/demonstration/DEMONSTRATION_GUIDE.md) - Roteiro completo para demonstrar o projeto
+- [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md) - Como fazer deploy em produção
+
 ### 📖 Documentação Essencial
-- [Guia de Contribuição](./docs/CONTRIBUTING.md) - Como contribuir com o projeto
 - [Arquitetura do Sistema](./docs/architecture/ARCHITECTURE.md) - Visão arquitetural completa
 - [Guia de Desenvolvimento](./docs/DEVELOPMENT_GUIDE.md) - Guia para desenvolvedores
-- [Desenvolvimento Local](./docs/setup/LOCAL_DEVELOPMENT.md) - Setup e workflow local
 - [Documentação de APIs](./docs/api/API_DOCUMENTATION.md) - APIs consolidadas
-- [Política de Segurança](./docs/security/SECURITY.md) - Segurança do sistema
-- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Solução de problemas
-- [Guia de Deploy](./docs/deployment/DEPLOYMENT.md) - Processo de deploy
 - [Estratégia de Testes](./docs/testing/TESTING_STRATEGY.md) - Estratégia completa de testes
 - [Decisões de Design](./docs/architecture/DESIGN_DECISIONS.md) - ADRs (Architecture Decision Records)
+- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Solução de problemas
 
-### 📊 Diagramas
+### 📊 Avaliação e Status
+- [Status do Projeto](./docs/status/PROJECT_STATUS.md) - Estado atual e funcionalidades implementadas
+- [Checklist de Funcionalidades](./docs/checklist/FEATURES_CHECKLIST.md) - Verificação completa de features
+- [Avaliação do Usuário Final](./docs/evaluation/USER_EVALUATION.md) - Perspectiva do gestor de espaços
+
+### 🔧 Documentação Técnica
+- [Infraestrutura Local](./docs/INFRAESTRUTURA_SIMPLIFICADA.md) - Abordagem e decisões
+- [Requisitos e Análise](./docs/REQUIREMENTS.md) - Requisitos do case
+- [Status dos Requisitos](./docs/REQUIREMENTS_STATUS.md) - Status de implementação
+- [Observabilidade](./docs/observability/OBSERVABILITY_COMPLETE.md) - Prometheus + Grafana
+- [Testes de Performance](./docs/testing/PERFORMANCE_TESTS.md) - Testes de carga e stress
+- [Política de Segurança](./docs/security/SECURITY.md) - Segurança do sistema
+- [Race Conditions](./docs/security/RACE_CONDITIONS_SOLUTIONS.md) - Soluções para concorrência
+
+### 📊 Diagramas e Visualizações
 - [Diagramas do Projeto](./docs/architecture/DIAGRAMAS_PROJETO.md) - Índice de todos os diagramas
 - [Diagramas Individuais](./docs/architecture/diagrams/) - Diagramas separados por arquivo
 
-### 🔧 Documentação Técnica
-- [Infraestrutura Simplificada](./docs/INFRAESTRUTURA_SIMPLIFICADA.md) - **Abordagem e decisões** ⭐
-- [Requisitos e Análise](./docs/REQUIREMENTS.md)
-- [Status dos Requisitos](./docs/REQUIREMENTS_STATUS.md)
-- [Plano Detalhado](./docs/PLANO_DETALHADO.md)
-- [Infraestrutura Kubernetes](./docs/infrastructure/INFRASTRUCTURE_KUBERNETES.md) - Setup K8s
-- [Observabilidade](./docs/observability/OBSERVABILITY_COMPLETE.md) - Prometheus + Grafana
-- [Race Conditions](./docs/security/RACE_CONDITIONS_SOLUTIONS.md)
-- [Testes de Performance](./docs/testing/PERFORMANCE_TESTS.md)
-- [Adaptadores AWS](./docs/infrastructure/AWS_ADAPTERS.md) - Preparação para cloud (bonus)
-- [Infraestrutura Terraform](./docs/infrastructure/INFRASTRUCTURE_TERRAFORM.md) - IaC (bonus)
+### 🔗 Referências Adicionais
+- [Mapa de Endpoints](./docs_ia/MAPA_COMPLETO_ENDPOINTS_E_PORTAS.md) - Referência rápida de APIs
+- [FAQ do Processo Seletivo](./docs_ia/PERGUNTAS_PROCESSO_SELETIVO.md) - Perguntas e respostas
+- [Guia de Contribuição](./docs/CONTRIBUTING.md) - Como contribuir com o projeto
+- [Guia de Deploy](./docs/deployment/DEPLOYMENT.md) - Processo de deploy
+- [Plano Detalhado](./docs/PLANO_DETALHADO.md) - Plano de implementação completo
 
-### 🎓 Processo Seletivo
-- [Kubernetes Quick Start](./docs/KUBERNETES_QUICK_START.md) - **Iniciar tudo no K8s** ⭐
-- [Demonstração do Projeto](./docs_ia/DEMONSTRACAO_PROJETO.md) - Guia de demonstração
-- [Perguntas Processo Seletivo](./docs_ia/PERGUNTAS_PROCESSO_SELETIVO.md) - Perguntas e respostas
+> **Nota:** A pasta `docs_ia/` contém documentação de contexto para desenvolvimento com IA. A documentação oficial e pública está em `docs/`.
 
 ## 🧪 Testes
 
@@ -201,9 +166,7 @@ controle-espacos-de-ensino/
 ├── frontend/              # Frontend React
 │   └── web-app/
 ├── infrastructure/        # Infraestrutura
-│   ├── docker/
-│   ├── kubernetes/
-│   └── terraform/
+│   └── docker/
 ├── shared/                # Código compartilhado
 │   ├── types/
 │   ├── events/
@@ -212,13 +175,6 @@ controle-espacos-de-ensino/
 ```
 
 ## 🔧 Scripts Disponíveis
-
-### Kubernetes (Produção/Demonstração) ⭐
-- `npm run k8s:start` - **Inicia tudo no Kubernetes** (recomendado para demonstração)
-- `npm run k8s:stop` - Para e remove cluster Kubernetes
-- `npm run k8s:status` - Ver status de pods, serviços e ingress
-- `npm run k8s:logs` - Ver logs de um pod (use: `npm run k8s:logs <pod-name>`)
-- `npm run k8s:test` - Testa conectividade e saúde dos serviços
 
 ### Desenvolvimento Local
 - `npm run dev` - Inicia todos os serviços em paralelo (Docker Compose)
@@ -234,13 +190,11 @@ controle-espacos-de-ensino/
 - `npm run seed:observability` - Seed apenas para observabilidade
 - `perf:seed` - Seed apenas para testes de performance
 
-### Docker (Desenvolvimento Local)
+### Docker (Infraestrutura)
 - `npm run docker:up` - Sobe infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
 - `npm run docker:down` - Para a infraestrutura
 - `npm run docker:logs` - Ver logs dos containers
 - `npm run docker:ps` - Lista containers em execução
-
-**Nota**: Sem API Gateway no Docker Compose. Acesse serviços diretamente por porta.
 
 ### Testes
 - `npm run test` - Executa todos os testes
@@ -251,23 +205,7 @@ controle-espacos-de-ensino/
 - `npm run build` - Build de todos os serviços
 - `npm run lint` - Lint de todos os serviços
 
-## 🌐 Acesso aos Serviços
-
-### Kubernetes (Produção/Demonstração)
-
-Todos os serviços via NGINX Ingress em `http://api.localhost`:
-
-| Serviço | URL |
-|---------|-----|
-| Auth Service | `http://api.localhost/api/v1/auth/health` |
-| Students Service | `http://api.localhost/api/v1/students` |
-| Rooms Service | `http://api.localhost/api/v1/rooms` |
-| Check-in Service | `http://api.localhost/api/v1/checkin` |
-| Analytics Service | `http://api.localhost/api/v1/analytics` |
-
-### Docker Compose (Desenvolvimento Local)
-
-Acesso direto por porta:
+## 🌐 Acesso aos Serviços (Desenvolvimento Local)
 
 | Serviço | URL |
 |---------|-----|
@@ -276,18 +214,12 @@ Acesso direto por porta:
 | Rooms Service | `http://localhost:3002/api/v1/rooms` |
 | Check-in Service | `http://localhost:3003/api/v1/checkin` |
 | Analytics Service | `http://localhost:3004/api/v1/analytics` |
+| Frontend Admin | `http://localhost:5173` |
+| Frontend Student | `http://localhost:5174` |
+| Grafana | `http://localhost:3001` (admin/admin) |
+| Prometheus | `http://localhost:9090` |
 
-## 🌐 Portas Diretas dos Serviços
-
-- **Auth Service:** http://localhost:3000
-- **Students Service:** http://localhost:3001
-- **Rooms Service:** http://localhost:3002
-- **Check-in Service:** http://localhost:3003
-- **Analytics Service:** http://localhost:3004
-- **Frontend Admin:** http://localhost:5173
-- **Frontend Student:** http://localhost:5174
-- **Grafana:** http://localhost:3001 (admin/admin)
-- **Prometheus:** http://localhost:9090
+> **📘 Para produção:** Veja [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md)
 
 ## 📝 Licença
 
