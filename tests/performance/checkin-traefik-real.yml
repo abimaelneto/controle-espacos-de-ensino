@@ -1,0 +1,46 @@
+config:
+  target: "{{ $processEnvironment.TRAEFIK_TARGET || 'http://api.localhost' }}"
+  phases:
+    - duration: 30
+      arrivalRate: 2
+      name: "Warm-up"
+    - duration: 60
+      arrivalRate: 3
+      rampTo: 10
+      name: "Ramp-up"
+    - duration: 120
+      arrivalRate: 10
+      name: "Sustained load"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  processor: "./processors/checkin-real.js"
+  plugins:
+    expect: {}
+  variables:
+    studentId: ""
+    roomId: ""
+    identificationMethod: "MATRICULA"
+    identificationValue: ""
+
+scenarios:
+  - name: "Check-in via Traefik (Real Services)"
+    weight: 100
+    flow:
+      - function: "generateCheckinPayload"
+      - post:
+          url: "/api/v1/checkin"
+          json:
+            studentId: "{{ studentId }}"
+            roomId: "{{ roomId }}"
+            identificationMethod: "{{ identificationMethod }}"
+            identificationValue: "{{ identificationValue }}"
+          capture:
+            - json: "$.checkInId"
+              as: "checkInId"
+          expect:
+            - statusCode: [201, 400, 409]
+            - contentType: json
+          afterResponse: "validateCheckinResponse"
+      - think: 1
+

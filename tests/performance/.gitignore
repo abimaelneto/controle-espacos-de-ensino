@@ -1,0 +1,7 @@
+# Dados de seed
+data/
+*.json
+
+# Logs do Artillery
+*.log
+

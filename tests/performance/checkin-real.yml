@@ -1,0 +1,47 @@
+config:
+  target: "{{ $processEnvironment.CHECKIN_TARGET || 'http://localhost:3003' }}"
+  phases:
+    - duration: 30
+      arrivalRate: 3
+      name: "Warm-up"
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 15
+      name: "Ramp-up"
+    - duration: 120
+      arrivalRate: 15
+      name: "Sustained load"
+  defaults:
+    headers:
+      Content-Type: "application/json"
+  processor: "./processors/checkin-real.js"
+  plugins:
+    expect: {}
+  variables:
+    # Serão preenchidos pelo processor
+    studentId: ""
+    roomId: ""
+    identificationMethod: "MATRICULA"
+    identificationValue: ""
+
+scenarios:
+  - name: "Check-in Real Services"
+    weight: 100
+    flow:
+      - function: "generateCheckinPayload"
+      - post:
+          url: "/api/v1/checkin"
+          json:
+            studentId: "{{ studentId }}"
+            roomId: "{{ roomId }}"
+            identificationMethod: "{{ identificationMethod }}"
+            identificationValue: "{{ identificationValue }}"
+          capture:
+            - json: "$.checkInId"
+              as: "checkInId"
+          expect:
+            - statusCode: [201, 400, 409]  # Aceita sucesso, validação ou conflito
+            - contentType: json
+          afterResponse: "validateCheckinResponse"
+      - think: 1
+
