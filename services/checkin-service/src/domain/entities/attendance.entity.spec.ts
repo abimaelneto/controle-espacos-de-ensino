@@ -24,6 +24,7 @@ describe('Attendance Entity', () => {
         'student-123',
         'room-456',
         checkInTime,
+        null, // idempotencyKey
         createdAt,
         updatedAt,
       );

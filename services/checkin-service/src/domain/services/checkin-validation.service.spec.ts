@@ -20,6 +20,9 @@ describe('CheckInValidationService', () => {
       countActiveByRoom: jest.fn(),
       countByRoomAndDate: jest.fn(),
       save: jest.fn(),
+      saveWithCapacityCheck: jest.fn(),
+      findByIdempotencyKey: jest.fn(),
+      delete: jest.fn(),
     };
 
     studentsClient = {
@@ -88,7 +91,7 @@ describe('CheckInValidationService', () => {
       const result = await service.validateCheckIn('student-123', 'room-456');
 
       expect(result.valid).toBe(false);
-      expect(result.reason).toContain('já possui um check-in registrado hoje');
+      expect(result.reason).toContain('já possui um check-in');
     });
 
     it('should reject if room is at capacity', async () => {

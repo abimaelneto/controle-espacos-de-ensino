@@ -22,6 +22,9 @@ describe('PerformCheckInUseCase', () => {
       countActiveByRoom: jest.fn(),
       countByRoomAndDate: jest.fn(),
       save: jest.fn(),
+      saveWithCapacityCheck: jest.fn(),
+      findByIdempotencyKey: jest.fn(),
+      delete: jest.fn(),
     };
 
     validationService = {
@@ -69,7 +72,10 @@ describe('PerformCheckInUseCase', () => {
         },
       });
 
-      attendanceRepository.save.mockResolvedValue(undefined);
+      attendanceRepository.findByIdempotencyKey.mockResolvedValue(null);
+      attendanceRepository.saveWithCapacityCheck.mockResolvedValue({
+        success: true,
+      });
       eventPublisher.publish.mockResolvedValue(undefined);
 
       const result = await useCase.execute({
@@ -81,7 +87,7 @@ describe('PerformCheckInUseCase', () => {
 
       expect(result.success).toBe(true);
       expect(result.attendance).toBeDefined();
-      expect(attendanceRepository.save).toHaveBeenCalled();
+      expect(attendanceRepository.saveWithCapacityCheck).toHaveBeenCalled();
       expect(eventPublisher.publish).toHaveBeenCalled();
     });
 
