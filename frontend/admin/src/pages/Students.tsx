@@ -5,6 +5,8 @@ import { useStudentsStore } from '@/stores/students.store';
 import { StudentForm } from '@/components/forms/StudentForm';
 import { Loader2, Trash2 } from 'lucide-react';
 import type { Student, CreateStudentDto, UpdateStudentDto } from '@/services/students.service';
+import { analyticsService, StudentStats } from '@/services/analytics.service';
+import { LineChart } from '@/components/charts/LineChart';
 import {
   Dialog,
   DialogContent,
@@ -18,7 +20,10 @@ export default function Students() {
   const { students, loading, error, fetchStudents, createStudent, updateStudent, deleteStudent } = useStudentsStore();
   const [formOpen, setFormOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [statsDialogOpen, setStatsDialogOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [studentStats, setStudentStats] = useState<StudentStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     fetchStudents();
@@ -37,6 +42,20 @@ export default function Students() {
   const handleDelete = (student: Student) => {
     setSelectedStudent(student);
     setDeleteDialogOpen(true);
+  };
+
+  const handleViewStats = async (student: Student) => {
+    setSelectedStudent(student);
+    setStatsDialogOpen(true);
+    setLoadingStats(true);
+    try {
+      const stats = await analyticsService.getStudentStats(student.id);
+      setStudentStats(stats);
+    } catch (error) {
+      console.error('Erro ao carregar estatísticas:', error);
+    } finally {
+      setLoadingStats(false);
+    }
   };
 
   const confirmDelete = async () => {
@@ -104,6 +123,9 @@ export default function Students() {
                     <Button variant="outline" size="sm" onClick={() => handleEdit(student)}>
                       Editar
                     </Button>
+                    <Button variant="outline" size="sm" onClick={() => handleViewStats(student)}>
+                      Analytics
+                    </Button>
                     <Button variant="destructive" size="sm" onClick={() => handleDelete(student)}>
                       <Trash2 className="h-4 w-4 mr-1" />
                       Excluir
@@ -140,6 +162,66 @@ export default function Students() {
               Excluir
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={statsDialogOpen} onOpenChange={setStatsDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Analytics - {selectedStudent?.firstName} {selectedStudent?.lastName}
+            </DialogTitle>
+            <DialogDescription>
+              Estatísticas de uso e check-ins do aluno
+            </DialogDescription>
+          </DialogHeader>
+          {loadingStats ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+          ) : studentStats ? (
+            <div className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-3">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Total Check-ins</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{studentStats.totalCheckins}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Total Horas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{studentStats.totalHours.toFixed(1)}h</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium">Salas Visitadas</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{studentStats.roomsVisited}</div>
+                  </CardContent>
+                </Card>
+              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle>Check-ins por Dia</CardTitle>
+                  <CardDescription>
+                    Período: {new Date(studentStats.period.startDate).toLocaleDateString('pt-BR')} - {new Date(studentStats.period.endDate).toLocaleDateString('pt-BR')}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <LineChart data={studentStats.dailyStats} />
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">Nenhum dado disponível</p>
+          )}
         </DialogContent>
       </Dialog>
     </div>

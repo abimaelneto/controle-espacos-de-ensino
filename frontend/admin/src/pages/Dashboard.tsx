@@ -1,16 +1,34 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Building2, BarChart3, Activity } from 'lucide-react';
+import { Users, Building2, BarChart3, Activity, Loader2 } from 'lucide-react';
 import { useStudentsStore } from '@/stores/students.store';
 import { useRoomsStore } from '@/stores/rooms.store';
+import { analyticsService, DashboardStats } from '@/services/analytics.service';
 
 export default function Dashboard() {
   const { students, fetchStudents } = useStudentsStore();
   const { rooms, fetchRooms } = useRoomsStore();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
   useEffect(() => {
     fetchStudents();
     fetchRooms();
+    
+    // Buscar estatísticas do dashboard
+    const fetchStats = async () => {
+      try {
+        setLoadingStats(true);
+        const data = await analyticsService.getDashboardStats();
+        setStats(data);
+      } catch (err) {
+        console.error('Erro ao carregar estatísticas:', err);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+    
+    fetchStats();
   }, [fetchStudents, fetchRooms]);
 
   return (
@@ -59,10 +77,18 @@ export default function Dashboard() {
             <Activity className="h-4 w-4 text-[#ff0040]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#ff0040]">0</div>
-            <p className="text-xs text-[#505050]">
-              Check-ins hoje
-            </p>
+            {loadingStats ? (
+              <Loader2 className="h-6 w-6 animate-spin text-[#ff0040]" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-[#ff0040]">
+                  {stats?.activeCheckins || 0}
+                </div>
+                <p className="text-xs text-[#505050]">
+                  Check-ins ativos (24h)
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -72,10 +98,20 @@ export default function Dashboard() {
             <BarChart3 className="h-4 w-4 text-[#8a0538]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-[#8a0538]">0%</div>
-            <p className="text-xs text-[#505050]">
-              Últimos 30 dias
-            </p>
+            {loadingStats ? (
+              <Loader2 className="h-6 w-6 animate-spin text-[#8a0538]" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold text-[#8a0538]">
+                  {stats?.roomsOccupied && stats?.totalCheckins
+                    ? ((stats.roomsOccupied / Math.max(stats.totalCheckins, 1)) * 100).toFixed(1)
+                    : 0}%
+                </div>
+                <p className="text-xs text-[#505050]">
+                  Salas ocupadas / Total check-ins
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
