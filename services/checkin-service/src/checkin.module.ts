@@ -8,6 +8,8 @@ import { MetricsController } from './presentation/http/controllers/metrics.contr
 import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
 import { PerformCheckInUseCase } from './application/use-cases/perform-checkin.use-case';
 import { GetAttendanceHistoryUseCase } from './application/use-cases/get-attendance-history.use-case';
+import { GetActiveAttendanceByIdentificationUseCase } from './application/use-cases/get-active-attendance-by-identification.use-case';
+import { PerformCheckOutUseCase } from './application/use-cases/perform-checkout.use-case';
 import { ResolveStudentIdUseCase } from './application/use-cases/resolve-student-id.use-case';
 import { CheckInValidationService } from './domain/services/checkin-validation.service';
 import { MySQLAttendanceRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-attendance.repository.adapter';
@@ -18,6 +20,8 @@ import { MockStudentsClientAdapter } from './infrastructure/adapters/http/mock/m
 import { MockRoomsClientAdapter } from './infrastructure/adapters/http/mock/mock-rooms-client.adapter';
 import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/kafka/kafka-event-publisher.adapter';
 import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
+import { RedisLockAdapter } from './infrastructure/adapters/cache/redis-lock.adapter';
+import { IdempotencyAdapter } from './infrastructure/adapters/cache/idempotency.adapter';
 import type { IAttendanceRepository } from './domain/ports/repositories/attendance.repository.port';
 import type { IStudentsClient } from './domain/ports/http/students-client.port';
 import type { IRoomsClient } from './domain/ports/http/rooms-client.port';
@@ -133,6 +137,8 @@ const shouldUseMockClients = (config: ConfigService) =>
         eventPublisher: IEventPublisher,
         resolveStudentIdUseCase: ResolveStudentIdUseCase,
         metrics: BusinessMetricsService,
+        lockAdapter?: RedisLockAdapter,
+        idempotencyAdapter?: IdempotencyAdapter,
       ) => {
         return new PerformCheckInUseCase(
           repository,
@@ -140,9 +146,19 @@ const shouldUseMockClients = (config: ConfigService) =>
           eventPublisher,
           resolveStudentIdUseCase,
           metrics,
+          lockAdapter,
+          idempotencyAdapter,
         );
       },
-      inject: [ATTENDANCE_REPOSITORY, CheckInValidationService, EVENT_PUBLISHER, ResolveStudentIdUseCase, BusinessMetricsService],
+      inject: [
+        ATTENDANCE_REPOSITORY,
+        CheckInValidationService,
+        EVENT_PUBLISHER,
+        ResolveStudentIdUseCase,
+        BusinessMetricsService,
+        RedisLockAdapter,
+        IdempotencyAdapter,
+      ],
     },
     {
       provide: GetAttendanceHistoryUseCase,
@@ -151,8 +167,61 @@ const shouldUseMockClients = (config: ConfigService) =>
       },
       inject: [ATTENDANCE_REPOSITORY],
     },
+    {
+      provide: GetActiveAttendanceByIdentificationUseCase,
+      useFactory: (
+        repository: IAttendanceRepository,
+        resolveStudentIdUseCase: ResolveStudentIdUseCase,
+      ) => {
+        return new GetActiveAttendanceByIdentificationUseCase(
+          repository,
+          resolveStudentIdUseCase,
+        );
+      },
+      inject: [ATTENDANCE_REPOSITORY, ResolveStudentIdUseCase],
+    },
+    {
+      provide: PerformCheckOutUseCase,
+      useFactory: (
+        repository: IAttendanceRepository,
+        eventPublisher: IEventPublisher,
+        resolveStudentIdUseCase: ResolveStudentIdUseCase,
+      ) => {
+        return new PerformCheckOutUseCase(
+          repository,
+          eventPublisher,
+          resolveStudentIdUseCase,
+        );
+      },
+      inject: [ATTENDANCE_REPOSITORY, EVENT_PUBLISHER, ResolveStudentIdUseCase],
+    },
     // Metrics
     BusinessMetricsService,
+    // Cache & Locks (opcional - só funciona se Redis estiver disponível)
+    {
+      provide: RedisLockAdapter,
+      useFactory: (config: ConfigService) => {
+        try {
+          return new RedisLockAdapter(config);
+        } catch (error) {
+          console.warn('Redis not available, distributed locks disabled');
+          return null;
+        }
+      },
+      inject: [ConfigService],
+    },
+    {
+      provide: IdempotencyAdapter,
+      useFactory: (config: ConfigService) => {
+        try {
+          return new IdempotencyAdapter(config);
+        } catch (error) {
+          console.warn('Redis not available, idempotency disabled');
+          return null;
+        }
+      },
+      inject: [ConfigService],
+    },
   ],
   exports: [ATTENDANCE_REPOSITORY, BusinessMetricsService],
 })
