@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { register } from 'prom-client';
+import { RoomResponseInterceptor } from './presentation/http/interceptors/room-response.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,10 +16,22 @@ async function bootstrap() {
     }),
   );
 
+  // Global prefix
+  app.setGlobalPrefix('api/v1');
+
+  // CORS
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  });
+
+  // Response interceptor para transformar Room entities
+  app.useGlobalInterceptors(new RoomResponseInterceptor());
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // Permitir campos extras (serão ignorados)
       transform: true,
     }),
   );

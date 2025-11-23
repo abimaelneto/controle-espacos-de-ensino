@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { register } from 'prom-client';
+import { HttpExceptionFilter } from './presentation/http/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -18,11 +19,14 @@ async function bootstrap() {
   // Global prefix
   app.setGlobalPrefix('api/v1');
 
+  // Exception filter
+  app.useGlobalFilters(new HttpExceptionFilter());
+
   // Validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // Permitir campos extras (serão ignorados)
       transform: true,
     }),
   );

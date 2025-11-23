@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { TerminusModule } from '@nestjs/terminus';
 import { APP_GUARD } from '@nestjs/core';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { AdaptersModule } from './infrastructure/providers/adapters.provider';
@@ -16,6 +17,7 @@ import { CreateUserUseCase } from './application/use-cases/create-user.use-case'
 import { JwtService } from './application/services/jwt.service';
 import { AuthController } from './presentation/http/controllers/auth.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
+import { HealthController } from './presentation/http/controllers/health.controller';
 import { IUserRepository } from './domain/ports/repositories/user.repository.port';
 import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
 
@@ -47,8 +49,9 @@ import { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
         limit: 10,
       },
     ]),
+    TerminusModule,
   ],
-  controllers: [AuthController, MetricsController],
+  controllers: [AuthController, MetricsController, HealthController],
   providers: [
     // Adapters
     {

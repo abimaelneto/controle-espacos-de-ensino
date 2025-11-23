@@ -23,6 +23,12 @@ async function bootstrap() {
     }),
   );
 
+  // CORS
+  app.enableCors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    credentials: true,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Analytics Service API')
     .setDescription('API para análises e relatórios de uso de espaços')
