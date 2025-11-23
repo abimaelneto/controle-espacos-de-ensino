@@ -5,6 +5,7 @@ import Dashboard from '@/pages/Dashboard';
 import Students from '@/pages/Students';
 import Rooms from '@/pages/Rooms';
 import Analytics from '@/pages/Analytics';
+import Realtime from '@/pages/Realtime';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/students" element={<Students />} />
           <Route path="/rooms" element={<Rooms />} />
           <Route path="/analytics" element={<Analytics />} />
+          <Route path="/realtime" element={<Realtime />} />
         </Routes>
       </Layout>
       <Toaster />

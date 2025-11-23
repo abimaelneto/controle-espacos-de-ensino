@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, DoorOpen, BarChart } from 'lucide-react';
+import { Home, Users, DoorOpen, BarChart, Activity } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 
@@ -67,6 +67,16 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               }`}
             >
               <BarChart className="mr-2 h-4 w-4" /> Analytics
+            </Button>
+          </Link>
+          <Link to="/realtime">
+            <Button
+              variant="ghost"
+              className={`w-full justify-start text-white hover:bg-white/10 ${
+                isActive('/realtime') ? 'bg-white/20' : ''
+              }`}
+            >
+              <Activity className="mr-2 h-4 w-4" /> Tempo Real
             </Button>
           </Link>
         </nav>
