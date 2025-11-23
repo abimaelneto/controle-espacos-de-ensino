@@ -22,7 +22,7 @@ import { UpdateStudentDto } from '../../../application/dto/update-student.dto';
 import { Student } from '../../../domain/entities/student.entity';
 
 @ApiTags('students')
-@Controller('api/v1/students')
+@Controller('students')
 export class StudentsController {
   constructor(
     private readonly createStudentUseCase: CreateStudentUseCase,
@@ -39,23 +39,67 @@ export class StudentsController {
   @ApiResponse({ status: 201, description: 'Aluno criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
   @ApiResponse({ status: 409, description: 'CPF, email ou matrícula já cadastrados' })
-  async create(@Body() createStudentDto: CreateStudentDto): Promise<Student> {
-    return this.createStudentUseCase.execute(createStudentDto);
+  async create(@Body() createStudentDto: CreateStudentDto) {
+    try {
+      const student = await this.createStudentUseCase.execute(createStudentDto);
+      return {
+        id: student.getId(),
+        userId: student.getUserId(),
+        firstName: student.getName().getFirstName(),
+        lastName: student.getName().getLastName(),
+        cpf: student.getCPF().toString(),
+        email: student.getEmail().toString(),
+        matricula: student.getMatricula().toString(),
+        status: student.getStatus(),
+        createdAt: student.getCreatedAt(),
+        updatedAt: student.getUpdatedAt(),
+      };
+    } catch (error) {
+      console.error('Erro ao criar aluno:', error);
+      throw error;
+    }
   }
 
   @Get()
   @ApiOperation({ summary: 'Listar todos os alunos' })
   @ApiResponse({ status: 200, description: 'Lista de alunos' })
-  async findAll(): Promise<Student[]> {
-    return this.listStudentsUseCase.execute();
+  async findAll() {
+    const students = await this.listStudentsUseCase.execute();
+    return students.map((student) => ({
+      id: student.getId(),
+      userId: student.getUserId(),
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    }));
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Buscar aluno por ID' })
   @ApiResponse({ status: 200, description: 'Aluno encontrado' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
-  async findOne(@Param('id') id: string): Promise<Student | null> {
-    return this.getStudentUseCase.execute(id);
+  async findOne(@Param('id') id: string) {
+    const student = await this.getStudentUseCase.execute(id);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    };
   }
 
   @Put(':id')
@@ -66,8 +110,20 @@ export class StudentsController {
   async update(
     @Param('id') id: string,
     @Body() updateStudentDto: UpdateStudentDto,
-  ): Promise<Student> {
-    return this.updateStudentUseCase.execute(id, updateStudentDto);
+  ) {
+    const student = await this.updateStudentUseCase.execute(id, updateStudentDto);
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    };
   }
 
   @Delete(':id')
@@ -91,11 +147,14 @@ export class StudentsController {
     return {
       id: student.getId(),
       userId: student.getUserId(),
-      name: student.getName().getFullName(),
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
       cpf: student.getCPF().toString(),
       email: student.getEmail().toString(),
       matricula: student.getMatricula().toString(),
       status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
     };
   }
 
@@ -111,11 +170,14 @@ export class StudentsController {
     return {
       id: student.getId(),
       userId: student.getUserId(),
-      name: student.getName().getFullName(),
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
       cpf: student.getCPF().toString(),
       email: student.getEmail().toString(),
       matricula: student.getMatricula().toString(),
       status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
     };
   }
 }

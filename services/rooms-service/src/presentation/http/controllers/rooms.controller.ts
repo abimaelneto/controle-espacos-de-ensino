@@ -20,7 +20,7 @@ import { UpdateRoomDto } from '../../../application/dto/update-room.dto';
 import { Room } from '../../../domain/entities/room.entity';
 
 @ApiTags('rooms')
-@Controller('api/v1/rooms')
+@Controller('rooms')
 export class RoomsController {
   constructor(
     private readonly createRoomUseCase: CreateRoomUseCase,
@@ -35,15 +35,37 @@ export class RoomsController {
   @ApiResponse({ status: 201, description: 'Sala criada com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
   @ApiResponse({ status: 409, description: 'Número da sala já cadastrado' })
-  async create(@Body() createRoomDto: CreateRoomDto): Promise<Room> {
-    return this.createRoomUseCase.execute(createRoomDto);
+  async create(@Body() createRoomDto: CreateRoomDto) {
+    const room = await this.createRoomUseCase.execute(createRoomDto);
+    return {
+      id: room.getId(),
+      roomNumber: room.getRoomNumber().toString(),
+      capacity: room.getCapacity().getValue(),
+      type: room.getType().getValue(),
+      description: room.getDescription(),
+      hasEquipment: room.hasEquipment(),
+      status: room.getStatus(),
+      createdAt: room.getCreatedAt(),
+      updatedAt: room.getUpdatedAt(),
+    };
   }
 
   @Get()
   @ApiOperation({ summary: 'Listar todas as salas' })
   @ApiResponse({ status: 200, description: 'Lista de salas' })
-  async findAll(): Promise<Room[]> {
-    return this.listRoomsUseCase.execute();
+  async findAll() {
+    const rooms = await this.listRoomsUseCase.execute();
+    return rooms.map((room) => ({
+      id: room.getId(),
+      roomNumber: room.getRoomNumber().toString(),
+      capacity: room.getCapacity().getValue(),
+      type: room.getType().getValue(),
+      description: room.getDescription(),
+      hasEquipment: room.hasEquipment(),
+      status: room.getStatus(),
+      createdAt: room.getCreatedAt(),
+      updatedAt: room.getUpdatedAt(),
+    }));
   }
 
   @Get(':id')
@@ -73,8 +95,19 @@ export class RoomsController {
   async update(
     @Param('id') id: string,
     @Body() updateRoomDto: UpdateRoomDto,
-  ): Promise<Room> {
-    return this.updateRoomUseCase.execute(id, updateRoomDto);
+  ) {
+    const room = await this.updateRoomUseCase.execute(id, updateRoomDto);
+    return {
+      id: room.getId(),
+      roomNumber: room.getRoomNumber().toString(),
+      capacity: room.getCapacity().getValue(),
+      type: room.getType().getValue(),
+      description: room.getDescription(),
+      hasEquipment: room.hasEquipment(),
+      status: room.getStatus(),
+      createdAt: room.getCreatedAt(),
+      updatedAt: room.getUpdatedAt(),
+    };
   }
 
   @Delete(':id')

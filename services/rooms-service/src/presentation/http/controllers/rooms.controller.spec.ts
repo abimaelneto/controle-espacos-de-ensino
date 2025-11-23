@@ -100,7 +100,13 @@ describe('RoomsController', () => {
 
       const result = await controller.findOne(room.getId());
 
-      expect(result).toBe(room);
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        id: room.getId(),
+        roomNumber: 'A101',
+        capacity: 30,
+        type: 'CLASSROOM',
+      });
       expect(getRoomUseCase.execute).toHaveBeenCalledWith(room.getId());
     });
   });
@@ -111,7 +117,15 @@ describe('RoomsController', () => {
 
       const result = await controller.findAll();
 
-      expect(result).toEqual([room]);
+      expect(result).toBeDefined();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(1);
+      expect(result[0]).toMatchObject({
+        id: room.getId(),
+        roomNumber: 'A101',
+        capacity: 30,
+        type: 'CLASSROOM',
+      });
       expect(listRoomsUseCase.execute).toHaveBeenCalled();
     });
   });
@@ -133,7 +147,13 @@ describe('RoomsController', () => {
 
       const result = await controller.update(room.getId(), updateDto);
 
-      expect(result).toBe(updatedRoom);
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        id: updatedRoom.getId(),
+        roomNumber: 'A101',
+        capacity: 50,
+        type: 'CLASSROOM',
+      });
       expect(updateRoomUseCase.execute).toHaveBeenCalledWith(
         room.getId(),
         updateDto,

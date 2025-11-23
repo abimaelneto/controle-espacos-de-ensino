@@ -5,6 +5,8 @@ import { GetStudentUseCase } from '../../../application/use-cases/get-student.us
 import { ListStudentsUseCase } from '../../../application/use-cases/list-students.use-case';
 import { UpdateStudentUseCase } from '../../../application/use-cases/update-student.use-case';
 import { DeleteStudentUseCase } from '../../../application/use-cases/delete-student.use-case';
+import { FindStudentByCPFUseCase } from '../../../application/use-cases/find-student-by-cpf.use-case';
+import { FindStudentByMatriculaUseCase } from '../../../application/use-cases/find-student-by-matricula.use-case';
 import { Student } from '../../../domain/entities/student.entity';
 import { FullName } from '../../../domain/value-objects/full-name.vo';
 import { CPF } from '../../../domain/value-objects/cpf.vo';
@@ -20,6 +22,8 @@ describe('StudentsController', () => {
   let listStudentsUseCase: jest.Mocked<ListStudentsUseCase>;
   let updateStudentUseCase: jest.Mocked<UpdateStudentUseCase>;
   let deleteStudentUseCase: jest.Mocked<DeleteStudentUseCase>;
+  let findStudentByCPFUseCase: jest.Mocked<FindStudentByCPFUseCase>;
+  let findStudentByMatriculaUseCase: jest.Mocked<FindStudentByMatriculaUseCase>;
   let student: Student;
 
   beforeEach(async () => {
@@ -49,6 +53,14 @@ describe('StudentsController', () => {
       execute: jest.fn(),
     } as any;
 
+    findStudentByCPFUseCase = {
+      execute: jest.fn(),
+    } as any;
+
+    findStudentByMatriculaUseCase = {
+      execute: jest.fn(),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [StudentsController],
       providers: [
@@ -71,6 +83,14 @@ describe('StudentsController', () => {
         {
           provide: DeleteStudentUseCase,
           useValue: deleteStudentUseCase,
+        },
+        {
+          provide: FindStudentByCPFUseCase,
+          useValue: findStudentByCPFUseCase,
+        },
+        {
+          provide: FindStudentByMatriculaUseCase,
+          useValue: findStudentByMatriculaUseCase,
         },
       ],
     }).compile();
@@ -104,7 +124,15 @@ describe('StudentsController', () => {
 
       const result = await controller.findOne(student.getId());
 
-      expect(result).toBe(student);
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        id: student.getId(),
+        firstName: 'João',
+        lastName: 'Silva',
+        cpf: '12345678909',
+        email: 'joao@example.com',
+        matricula: '2024001234',
+      });
       expect(getStudentUseCase.execute).toHaveBeenCalledWith(student.getId());
     });
   });
@@ -115,7 +143,17 @@ describe('StudentsController', () => {
 
       const result = await controller.findAll();
 
-      expect(result).toEqual([student]);
+      expect(result).toBeDefined();
+      expect(Array.isArray(result)).toBe(true);
+      expect(result.length).toBe(1);
+      expect(result[0]).toMatchObject({
+        id: student.getId(),
+        firstName: 'João',
+        lastName: 'Silva',
+        cpf: '12345678909',
+        email: 'joao@example.com',
+        matricula: '2024001234',
+      });
       expect(listStudentsUseCase.execute).toHaveBeenCalled();
     });
   });
@@ -138,7 +176,15 @@ describe('StudentsController', () => {
 
       const result = await controller.update(student.getId(), updateDto);
 
-      expect(result).toBe(updatedStudent);
+      expect(result).toBeDefined();
+      expect(result).toMatchObject({
+        id: updatedStudent.getId(),
+        firstName: 'José',
+        lastName: 'Silva',
+        cpf: '12345678909',
+        email: 'joao@example.com',
+        matricula: '2024001234',
+      });
       expect(updateStudentUseCase.execute).toHaveBeenCalledWith(
         student.getId(),
         updateDto,
