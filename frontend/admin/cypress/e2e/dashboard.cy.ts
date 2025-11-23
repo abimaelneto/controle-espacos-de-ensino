@@ -2,12 +2,35 @@ import { mockDashboardApis } from '../support/apiMock';
 
 describe('Dashboard', () => {
   beforeEach(() => {
-    // CRÍTICO: Configurar autenticação e mocks ANTES de navegar
+    // CRÍTICO: Configurar mocks ANTES de qualquer coisa
+    mockDashboardApis(); // Inclui analytics, students e rooms
+    
+    // Configurar autenticação
     cy.loginAsAdmin();
-    // Mock das APIs ANTES de visit - Dashboard precisa de students, rooms E analytics
-    mockDashboardApis();
+    
     // AGORA pode navegar - mocks já estão configurados
     cy.visitAndWaitForApp('/');
+    
+    // CRÍTICO: Aguardar que as requisições sejam completadas
+    // O Dashboard faz várias chamadas de API:
+    // 1. fetchStudents() -> GET /students
+    // 2. fetchRooms() -> GET /rooms
+    // 3. getDashboardStats() -> GET /analytics/dashboard
+    
+    // Aguardar que o root tenha conteúdo após as requisições
+    cy.get('#root', { timeout: 20000 }).should(($root) => {
+      const hasChildren = $root.children().length > 0;
+      const hasContent = ($root.html() || '').trim().length > 0;
+      
+      if (!hasChildren && !hasContent) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    // Aguardar um pouco mais para garantir que tudo está estável
+    cy.wait(1000);
   });
 
   it('should display dashboard page', () => {
