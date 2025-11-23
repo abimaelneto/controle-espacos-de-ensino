@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, Between, DataSource } from 'typeorm';
 import { IAttendanceRepository } from '../../../../domain/ports/repositories/attendance.repository.port';
 import { Attendance } from '../../../../domain/entities/attendance.entity';
 import { AttendanceEntity } from './attendance.entity';
@@ -12,6 +12,8 @@ export class MySQLAttendanceRepositoryAdapter
   constructor(
     @InjectRepository(AttendanceEntity)
     private readonly repository: Repository<AttendanceEntity>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {}
 
   async findById(id: string): Promise<Attendance | null> {
@@ -114,11 +116,96 @@ export class MySQLAttendanceRepositoryAdapter
       studentId: attendance.getStudentId(),
       roomId: attendance.getRoomId(),
       checkInTime: attendance.getCheckInTime(),
+      idempotencyKey: attendance.getIdempotencyKey(),
       createdAt: attendance.getCreatedAt(),
       updatedAt: attendance.getUpdatedAt(),
     });
 
     await this.repository.save(entity);
+  }
+
+  /**
+   * Salva com transação e validação de capacidade
+   * Usa isolamento SERIALIZABLE para prevenir race conditions
+   */
+  async saveWithCapacityCheck(
+    attendance: Attendance,
+    roomId: string,
+    maxCapacity: number,
+  ): Promise<{ success: boolean; reason?: string }> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction('SERIALIZABLE');
+
+    try {
+      // Verificar idempotency key
+      if (attendance.getIdempotencyKey()) {
+        const existing = await queryRunner.manager.findOne(AttendanceEntity, {
+          where: { idempotencyKey: attendance.getIdempotencyKey() },
+        });
+
+        if (existing) {
+          await queryRunner.rollbackTransaction();
+          return { success: false, reason: 'Duplicate request (idempotency key)' };
+        }
+      }
+
+      // Contar check-ins ativos na sala (dentro da transação)
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const currentCount = await queryRunner.manager.count(AttendanceEntity, {
+        where: {
+          roomId,
+          checkInTime: Between(today, tomorrow),
+        },
+      });
+
+      if (currentCount >= maxCapacity) {
+        await queryRunner.rollbackTransaction();
+        return {
+          success: false,
+          reason: `Sala atingiu a capacidade máxima de ${maxCapacity} alunos`,
+        };
+      }
+
+      // Salvar check-in
+      const entity = this.repository.create({
+        id: attendance.getId(),
+        studentId: attendance.getStudentId(),
+        roomId: attendance.getRoomId(),
+        checkInTime: attendance.getCheckInTime(),
+        idempotencyKey: attendance.getIdempotencyKey(),
+        createdAt: attendance.getCreatedAt(),
+        updatedAt: attendance.getUpdatedAt(),
+      });
+
+      await queryRunner.manager.save(AttendanceEntity, entity);
+      await queryRunner.commitTransaction();
+
+      return { success: true };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  /**
+   * Verifica se um idempotency key já existe
+   */
+  async findByIdempotencyKey(idempotencyKey: string): Promise<Attendance | null> {
+    const entity = await this.repository.findOne({
+      where: { idempotencyKey },
+    });
+    return entity ? this.toDomain(entity) : null;
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repository.delete(id);
   }
 
   private toDomain(entity: AttendanceEntity): Attendance {
@@ -127,6 +214,7 @@ export class MySQLAttendanceRepositoryAdapter
       entity.studentId,
       entity.roomId,
       entity.checkInTime,
+      entity.idempotencyKey,
       entity.createdAt,
       entity.updatedAt,
     );
