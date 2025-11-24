@@ -92,8 +92,9 @@ npm run dev
 #### 5️⃣ **Teste Check-out**
 
 1. Após fazer check-in, você verá: "Você tem um check-in ativo na sala X"
-2. Clique em **"Fazer Check-out"**
+2. Clique em **"Fazer Check-out"** no mesmo formulário (não existe tela separada)
 3. ✅ **Resultado esperado:** Mensagem de sucesso e liberação para novo check-in
+4. 🔁 **Fluxo único:** sempre que você abrir outra sala, o sistema detecta automaticamente check-ins ativos e exibe o botão de checkout no topo do formulário. Não é necessário navegar para outra rota.
 
 #### 6️⃣ **Verifique Autenticação JWT**
 
@@ -410,7 +411,8 @@ npm run dev
 
 5. **Fazer Check-out (opcional):**
    - Se você já tem um check-in ativo, o sistema mostrará essa informação
-   - Você pode fazer check-out clicando no botão "Fazer Check-out"
+   - Você pode fazer check-out clicando no botão "Fazer Check-out" que aparece no mesmo card
+   - Todo o fluxo acontece na mesma tela; após o checkout basta selecionar outra sala e repetir o processo
    - Isso libera você para fazer check-in em outra sala
 
 ### Dados de Teste Disponíveis
@@ -484,10 +486,10 @@ O seed cria **20 salas ativas** com números no formato:
 **✅ Cenário 3: Check-out e novo check-in em outra sala**
 
 1. Após fazer check-in, o sistema mostrará: "Você tem um check-in ativo na sala X"
-2. Clique em **"Fazer Check-out"** para sair da sala atual
-3. Selecione **outra sala** da lista
+2. Clique em **"Fazer Check-out"** no card que aparece automaticamente
+3. Selecione **outra sala** da lista (sem sair do fluxo atual)
 4. Faça um novo check-in usando a mesma matrícula/CPF
-5. ✅ **Sucesso!** Agora você está em uma nova sala
+5. ✅ **Sucesso!** Agora você está em uma nova sala, tudo na mesma tela
 
 ### Dicas para Teste
 
