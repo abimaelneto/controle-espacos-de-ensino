@@ -13,6 +13,7 @@ import { BusinessMetricsService } from './infrastructure/metrics/business-metric
 import { PerformCheckInUseCase } from './application/use-cases/perform-checkin.use-case';
 import { GetAttendanceHistoryUseCase } from './application/use-cases/get-attendance-history.use-case';
 import { GetActiveAttendanceByIdentificationUseCase } from './application/use-cases/get-active-attendance-by-identification.use-case';
+import { GetActiveAttendanceByUserIdUseCase } from './application/use-cases/get-active-attendance-by-user-id.use-case';
 import { PerformCheckOutUseCase } from './application/use-cases/perform-checkout.use-case';
 import { ResolveStudentIdUseCase } from './application/use-cases/resolve-student-id.use-case';
 import { CheckInValidationService } from './domain/services/checkin-validation.service';
@@ -192,6 +193,19 @@ const shouldUseMockClients = (config: ConfigService) =>
         resolveStudentIdUseCase: ResolveStudentIdUseCase,
       ) => {
         return new GetActiveAttendanceByIdentificationUseCase(
+          repository,
+          resolveStudentIdUseCase,
+        );
+      },
+      inject: [ATTENDANCE_REPOSITORY, ResolveStudentIdUseCase],
+    },
+    {
+      provide: GetActiveAttendanceByUserIdUseCase,
+      useFactory: (
+        repository: IAttendanceRepository,
+        resolveStudentIdUseCase: ResolveStudentIdUseCase,
+      ) => {
+        return new GetActiveAttendanceByUserIdUseCase(
           repository,
           resolveStudentIdUseCase,
         );

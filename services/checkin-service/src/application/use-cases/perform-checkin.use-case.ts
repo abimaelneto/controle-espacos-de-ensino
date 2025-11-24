@@ -84,13 +84,13 @@ export class PerformCheckInUseCase {
       }
       
       // Se ainda não tiver studentId, tentar por método de identificação
-      if (!studentId && dto.identificationMethod && dto.identificationValue) {
+    if (!studentId && dto.identificationMethod && dto.identificationValue) {
         console.log(`[PerformCheckIn] Tentando resolver studentId por método de identificação: ${dto.identificationMethod}`);
-        studentId =
-          (await this.resolveStudentIdUseCase.execute(
-            dto.identificationMethod,
-            dto.identificationValue,
-          )) || '';
+      studentId =
+        (await this.resolveStudentIdUseCase.execute(
+          dto.identificationMethod,
+          dto.identificationValue,
+        )) || '';
       }
     }
 

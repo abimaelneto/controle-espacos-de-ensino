@@ -1,8 +1,4 @@
-import {
-  IsNotEmpty,
-  IsString,
-  IsIn,
-} from 'class-validator';
+import { IsNotEmpty, IsString, IsIn, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PerformCheckOutDto {
@@ -17,10 +13,13 @@ export class PerformCheckOutDto {
 
   @ApiProperty({
     example: '2024001234',
-    description: 'Valor da identificação',
+    description:
+      'Valor da identificação (opcional quando usuário autenticado possui studentId vinculado)',
+    required: false,
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  identificationValue: string;
+  identificationValue?: string;
 }
 

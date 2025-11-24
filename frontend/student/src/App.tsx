@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import CheckIn from '@/pages/CheckIn';
+import Checkout from '@/pages/Checkout';
 import Login from '@/pages/Login';
 import { useAuthStore } from '@/stores/auth.store';
 
@@ -23,6 +24,7 @@ function App() {
             <ProtectedRoute>
               <Routes>
                 <Route path="/checkin" element={<CheckIn />} />
+                <Route path="/checkout" element={<Checkout />} />
                 <Route path="/" element={<CheckIn />} />
               </Routes>
             </ProtectedRoute>

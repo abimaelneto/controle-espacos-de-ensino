@@ -44,7 +44,7 @@ export interface ActiveAttendance {
 
 export interface CheckOutRequest {
   identificationMethod: 'CPF' | 'MATRICULA' | 'QR_CODE' | 'BIOMETRIC';
-  identificationValue: string;
+  identificationValue?: string;
 }
 
 export interface CheckOutResponse {
@@ -76,6 +76,17 @@ export const checkInService = {
         {
           params: { method, value },
         },
+      );
+      return response.data;
+    } catch (error) {
+      return null;
+    }
+  },
+
+  async getMyActiveAttendance(): Promise<ActiveAttendance | null> {
+    try {
+      const response = await api.get<ActiveAttendance | null>(
+        `/api/v1/checkin/active/me`,
       );
       return response.data;
     } catch (error) {

@@ -62,7 +62,7 @@ async function bootstrap() {
   register.setDefaultLabels({ service: 'checkin-service' });
 
   const port = process.env.PORT || 3003;
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0'); // Escutar em todas as interfaces (IPv4 e IPv6)
   console.log(`🚀 Check-in Service running on: http://localhost:${port}`);
   console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
   console.log(`📊 Metrics: http://localhost:${port}/metrics`);

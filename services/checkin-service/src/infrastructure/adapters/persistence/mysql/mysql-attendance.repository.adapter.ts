@@ -22,12 +22,37 @@ export class MySQLAttendanceRepositoryAdapter
   }
 
   async findActiveByStudent(studentId: string): Promise<Attendance | null> {
-    // Buscar check-in mais recente do aluno
-    // Como não há mais check-out, todos os check-ins são considerados "ativos" até serem substituídos
+    // Buscar check-in mais recente do aluno de hoje
+    // Check-ins são considerados "ativos" apenas se forem do dia atual
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    console.log(`[MySQLAttendanceRepository] Buscando check-in ativo para studentId: ${studentId}`, {
+      today: today.toISOString(),
+      tomorrow: tomorrow.toISOString(),
+    });
+
     const entity = await this.repository.findOne({
-      where: { studentId },
+      where: {
+        studentId,
+        checkInTime: Between(today, tomorrow),
+      },
       order: { checkInTime: 'DESC' },
     });
+
+    if (entity) {
+      console.log(`[MySQLAttendanceRepository] Check-in ativo encontrado:`, {
+        id: entity.id,
+        studentId: entity.studentId,
+        roomId: entity.roomId,
+        checkInTime: entity.checkInTime,
+      });
+    } else {
+      console.log(`[MySQLAttendanceRepository] Nenhum check-in ativo encontrado para studentId: ${studentId}`);
+    }
+
     return entity ? this.toDomain(entity) : null;
   }
 
