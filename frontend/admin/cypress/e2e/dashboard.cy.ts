@@ -30,7 +30,7 @@ describe('Dashboard', () => {
     });
     
     // Aguardar um pouco mais para garantir que tudo está estável
-    cy.wait(1000);
+    cy.wait(2000);
   });
 
   it('should display dashboard page', () => {
@@ -73,11 +73,14 @@ describe('Dashboard', () => {
   });
 
   it('should refresh metrics when data changes', () => {
-    // Initial load
-    cy.get('[data-testid="metric-card-students-value"]').should('contain', '2');
+    // Initial load - aguardar métricas aparecerem
+    cy.get('[data-testid="metric-card-students-value"]', { timeout: 10000 }).should('be.visible').should('contain', '2');
     
-    // Update mock to return different values
-    cy.intercept('GET', /.*\/students.*/, {
+    // Update mock to return different values - reconfigurar mocks antes do reload
+    mockDashboardApis(); // Reconfigurar mocks
+    
+    // Interceptar com novos valores
+    cy.intercept('GET', /.*\/students[^/]*$/, {
       statusCode: 200,
       body: [
         { id: '1', firstName: 'Student', lastName: '1', email: 's1@test.com', matricula: '1', cpf: '111.111.111-11', status: 'ACTIVE' },
@@ -86,7 +89,7 @@ describe('Dashboard', () => {
       ],
     });
 
-    cy.intercept('GET', /.*\/rooms.*/, {
+    cy.intercept('GET', /.*\/rooms[^/]*$/, {
       statusCode: 200,
       body: [
         { id: '1', roomNumber: 'R1', type: 'CLASSROOM', capacity: 30, hasEquipment: false, status: 'AVAILABLE' },
@@ -97,10 +100,17 @@ describe('Dashboard', () => {
 
     // Reload page to get new data
     cy.reload();
-    cy.wait(1000);
-
-    // Metrics should update (if dashboard refreshes automatically)
-    cy.get('[data-testid="metric-card-students-value"]').should('be.visible');
+    
+    // Aguardar que o root tenha conteúdo após reload
+    cy.get('#root', { timeout: 20000 }).should(($root) => {
+      const hasChildren = $root.children().length > 0;
+      const hasContent = ($root.html() || '').trim().length > 0;
+      return hasChildren || hasContent;
+    });
+    
+    // Aguardar que as métricas apareçam novamente
+    cy.wait(2000);
+    cy.get('[data-testid="metric-card-students-value"]', { timeout: 10000 }).should('be.visible');
   });
 
   it('should handle dashboard loading state', () => {

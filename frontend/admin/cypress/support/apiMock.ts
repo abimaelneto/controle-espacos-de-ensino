@@ -85,45 +85,38 @@ let roomsState: RoomMock[] = [...defaultRooms];
 export function mockStudentsApi(initial = defaultStudents) {
   studentsState = initial.map((student) => ({ ...student }));
 
-  // Mock GET /students - NÃO interceptar se for HTML (página)
-  cy.intercept('GET', /.*\/students[^/]*$/, (req) => {
-    // Verificar se é uma requisição de API (não HTML)
-    const acceptHeader = req.headers['accept'] || '';
-    if (acceptHeader.includes('text/html')) {
-      req.continue();
-      return;
-    }
-    req.reply({
-      statusCode: 200,
-      body: studentsState,
-    });
+  // Mock GET /students - Interceptar apenas URLs de API (com porta ou /api/)
+  // Padrão: http://localhost:3001/api/v1/students ou http://localhost:3001/students
+  cy.intercept('GET', /http:\/\/localhost:(3001|3002|3000)\/.*\/students[^/]*$/, {
+    statusCode: 200,
+    body: studentsState,
   }).as('getStudents');
 
-  // Mock POST /students
-  cy.intercept('POST', /.*\/students[^/]*$/, (req) => {
-    const payload = req.body;
-    const timestamp = new Date().toISOString();
-    const newStudent: StudentMock = {
-      id: buildId('student'),
-      userId: payload.userId || buildId('user'),
-      firstName: payload.firstName,
-      lastName: payload.lastName,
-      cpf: payload.cpf,
-      email: payload.email,
-      matricula: payload.matricula,
-      status: 'ACTIVE',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    studentsState.push(newStudent);
+  // Mock POST /students - Apenas URLs de API
+  cy.intercept('POST', /http:\/\/localhost:(3001|3002|3000)\/.*\/students[^/]*$/, (req) => {
+      const payload = req.body;
+      const timestamp = new Date().toISOString();
+      const newStudent: StudentMock = {
+        id: buildId('student'),
+        userId: payload.userId || buildId('user'),
+        firstName: payload.firstName,
+        lastName: payload.lastName,
+        cpf: payload.cpf,
+        email: payload.email,
+        matricula: payload.matricula,
+        status: 'ACTIVE',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      studentsState.push(newStudent);
     req.reply({
       statusCode: 201,
       body: newStudent,
     });
   }).as('createStudent');
 
-  // Mock GET /students/:id
-  cy.intercept('GET', /.*\/students\/[^/]+$/, (req) => {
+  // Mock GET /students/:id - Apenas URLs de API
+  cy.intercept('GET', /http:\/\/localhost:(3001|3002|3000)\/.*\/students\/[^/]+$/, (req) => {
     const studentId = req.url.split('/').pop()?.split('?')[0];
     const student = studentsState.find((s) => s.id === studentId);
     if (student) {
@@ -138,8 +131,8 @@ export function mockStudentsApi(initial = defaultStudents) {
     }
   }).as('getStudent');
 
-  // Mock PUT /students/:id
-  cy.intercept('PUT', /.*\/students\/[^/]+$/, (req) => {
+  // Mock PUT /students/:id - Apenas URLs de API
+  cy.intercept('PUT', /http:\/\/localhost:(3001|3002|3000)\/.*\/students\/[^/]+$/, (req) => {
     const studentId = req.url.split('/').pop()?.split('?')[0];
     const index = studentsState.findIndex((s) => s.id === studentId);
     if (index !== -1) {
@@ -160,8 +153,8 @@ export function mockStudentsApi(initial = defaultStudents) {
     }
   }).as('updateStudent');
 
-  // Mock DELETE /students/:id
-  cy.intercept('DELETE', /.*\/students\/[^/]+$/, (req) => {
+  // Mock DELETE /students/:id - Apenas URLs de API
+  cy.intercept('DELETE', /http:\/\/localhost:(3001|3002|3000)\/.*\/students\/[^/]+$/, (req) => {
     const studentId = req.url.split('/').pop()?.split('?')[0];
     const index = studentsState.findIndex((s) => s.id === studentId);
     if (index !== -1) {
@@ -185,43 +178,36 @@ export function mockStudentsApi(initial = defaultStudents) {
 export function mockRoomsApi(initial = defaultRooms) {
   roomsState = initial.map((room) => ({ ...room }));
 
-  // Mock GET /rooms - NÃO interceptar se for HTML (página)
-  cy.intercept('GET', /.*\/rooms[^/]*$/, (req) => {
-    // Verificar se é uma requisição de API (não HTML)
-    const acceptHeader = req.headers['accept'] || '';
-    if (acceptHeader.includes('text/html')) {
-      req.continue();
-      return;
-    }
-    req.reply({
-      statusCode: 200,
-      body: roomsState,
-    });
+  // Mock GET /rooms - Interceptar apenas URLs de API (com porta ou /api/)
+  // Padrão: http://localhost:3002/api/v1/rooms ou http://localhost:3002/rooms
+  cy.intercept('GET', /http:\/\/localhost:(3001|3002|3000)\/.*\/rooms[^/]*$/, {
+    statusCode: 200,
+    body: roomsState,
   }).as('getRooms');
 
-  // Mock POST /rooms
-  cy.intercept('POST', /.*\/rooms[^/]*$/, (req) => {
-    const payload = req.body;
-    const timestamp = new Date().toISOString();
-    const newRoom: RoomMock = {
-      id: buildId('room'),
-      roomNumber: payload.roomNumber,
-      type: payload.type,
-      capacity: payload.capacity,
-      hasEquipment: payload.hasEquipment,
-      status: 'AVAILABLE',
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
-    roomsState.push(newRoom);
+  // Mock POST /rooms - Apenas URLs de API
+  cy.intercept('POST', /http:\/\/localhost:(3001|3002|3000)\/.*\/rooms[^/]*$/, (req) => {
+      const payload = req.body;
+      const timestamp = new Date().toISOString();
+      const newRoom: RoomMock = {
+        id: buildId('room'),
+        roomNumber: payload.roomNumber,
+        type: payload.type,
+        capacity: payload.capacity,
+        hasEquipment: payload.hasEquipment,
+        status: 'AVAILABLE',
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      roomsState.push(newRoom);
     req.reply({
       statusCode: 201,
       body: newRoom,
     });
   }).as('createRoom');
 
-  // Mock GET /rooms/:id
-  cy.intercept('GET', /.*\/rooms\/[^/]+$/, (req) => {
+  // Mock GET /rooms/:id - Apenas URLs de API
+  cy.intercept('GET', /http:\/\/localhost:(3001|3002|3000)\/.*\/rooms\/[^/]+$/, (req) => {
     const roomId = req.url.split('/').pop()?.split('?')[0];
     const room = roomsState.find((r) => r.id === roomId);
     if (room) {
@@ -236,8 +222,8 @@ export function mockRoomsApi(initial = defaultRooms) {
     }
   }).as('getRoom');
 
-  // Mock PUT /rooms/:id
-  cy.intercept('PUT', /.*\/rooms\/[^/]+$/, (req) => {
+  // Mock PUT /rooms/:id - Apenas URLs de API
+  cy.intercept('PUT', /http:\/\/localhost:(3001|3002|3000)\/.*\/rooms\/[^/]+$/, (req) => {
     const roomId = req.url.split('/').pop()?.split('?')[0];
     const index = roomsState.findIndex((r) => r.id === roomId);
     if (index !== -1) {
@@ -258,8 +244,8 @@ export function mockRoomsApi(initial = defaultRooms) {
     }
   }).as('updateRoom');
 
-  // Mock DELETE /rooms/:id
-  cy.intercept('DELETE', /.*\/rooms\/[^/]+$/, (req) => {
+  // Mock DELETE /rooms/:id - Apenas URLs de API
+  cy.intercept('DELETE', /http:\/\/localhost:(3001|3002|3000)\/.*\/rooms\/[^/]+$/, (req) => {
     const roomId = req.url.split('/').pop()?.split('?')[0];
     const index = roomsState.findIndex((r) => r.id === roomId);
     if (index !== -1) {
