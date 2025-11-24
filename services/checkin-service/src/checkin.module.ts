@@ -2,7 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule, HttpService } from '@nestjs/axios';
+import { JwtModule } from '@nestjs/jwt';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
+import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from './presentation/http/guards/roles.guard';
 import { CheckInController } from './presentation/http/controllers/checkin.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
 import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
@@ -54,6 +57,16 @@ const shouldUseMockClients = (config: ConfigService) =>
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([AttendanceEntity]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [CheckInController, MetricsController],
   providers: [
@@ -197,6 +210,9 @@ const shouldUseMockClients = (config: ConfigService) =>
     },
     // Metrics
     BusinessMetricsService,
+    // Guards
+    JwtAuthGuard,
+    RolesGuard,
     // Cache & Locks (opcional - só funciona se Redis estiver disponível)
     {
       provide: RedisLockAdapter,

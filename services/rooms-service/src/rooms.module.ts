@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
+import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from './presentation/http/guards/roles.guard';
 import { RoomsController } from './presentation/http/controllers/rooms.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
 import { BusinessMetricsService } from './infrastructure/metrics/business-metrics.service';
@@ -36,6 +39,16 @@ const isTrue = (value?: string | null) =>
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([RoomEntity]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [RoomsController, MetricsController],
   providers: [
@@ -113,6 +126,9 @@ const isTrue = (value?: string | null) =>
     },
     // Metrics
     BusinessMetricsService,
+    // Guards
+    JwtAuthGuard,
+    RolesGuard,
   ],
   exports: [ROOM_REPOSITORY, EVENT_PUBLISHER, BusinessMetricsService],
 })

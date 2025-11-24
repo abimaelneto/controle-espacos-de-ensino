@@ -8,8 +8,12 @@ import {
   Param,
   HttpCode,
   HttpStatus,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
 import { CreateStudentUseCase } from '../../../application/use-cases/create-student.use-case';
 import { GetStudentUseCase } from '../../../application/use-cases/get-student.use-case';
 import { ListStudentsUseCase } from '../../../application/use-cases/list-students.use-case';
@@ -22,7 +26,9 @@ import { UpdateStudentDto } from '../../../application/dto/update-student.dto';
 import { Student } from '../../../domain/entities/student.entity';
 
 @ApiTags('students')
+@ApiBearerAuth()
 @Controller('students')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class StudentsController {
   constructor(
     private readonly createStudentUseCase: CreateStudentUseCase,
@@ -35,10 +41,13 @@ export class StudentsController {
   ) {}
 
   @Post()
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Criar novo aluno' })
   @ApiResponse({ status: 201, description: 'Aluno criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
   @ApiResponse({ status: 409, description: 'CPF, email ou matrícula já cadastrados' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async create(@Body() createStudentDto: CreateStudentDto) {
     try {
       const student = await this.createStudentUseCase.execute(createStudentDto);
@@ -61,8 +70,11 @@ export class StudentsController {
   }
 
   @Get()
+  @Roles('ADMIN', 'MONITOR')
   @ApiOperation({ summary: 'Listar todos os alunos' })
   @ApiResponse({ status: 200, description: 'Lista de alunos' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async findAll() {
     const students = await this.listStudentsUseCase.execute();
     return students.map((student) => ({
@@ -80,9 +92,12 @@ export class StudentsController {
   }
 
   @Get(':id')
+  @Roles('ADMIN', 'MONITOR', 'STUDENT')
   @ApiOperation({ summary: 'Buscar aluno por ID' })
   @ApiResponse({ status: 200, description: 'Aluno encontrado' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async findOne(@Param('id') id: string) {
     const student = await this.getStudentUseCase.execute(id);
     if (!student) {
@@ -103,10 +118,13 @@ export class StudentsController {
   }
 
   @Put(':id')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Atualizar aluno' })
   @ApiResponse({ status: 200, description: 'Aluno atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
   @ApiResponse({ status: 409, description: 'Email já cadastrado' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async update(
     @Param('id') id: string,
     @Body() updateStudentDto: UpdateStudentDto,
@@ -127,18 +145,24 @@ export class StudentsController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar aluno (soft delete)' })
   @ApiResponse({ status: 204, description: 'Aluno deletado com sucesso' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async remove(@Param('id') id: string): Promise<void> {
     return this.deleteStudentUseCase.execute(id);
   }
 
   @Get('cpf/:cpf')
+  @Roles('ADMIN', 'MONITOR')
   @ApiOperation({ summary: 'Buscar aluno por CPF' })
   @ApiResponse({ status: 200, description: 'Aluno encontrado' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async findByCPF(@Param('cpf') cpf: string) {
     const student = await this.findStudentByCPFUseCase.execute(cpf);
     if (!student) {
@@ -159,9 +183,12 @@ export class StudentsController {
   }
 
   @Get('matricula/:matricula')
+  @Roles('ADMIN', 'MONITOR')
   @ApiOperation({ summary: 'Buscar aluno por Matrícula' })
   @ApiResponse({ status: 200, description: 'Aluno encontrado' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 403, description: 'Acesso negado' })
   async findByMatricula(@Param('matricula') matricula: string) {
     const student = await this.findStudentByMatriculaUseCase.execute(matricula);
     if (!student) {

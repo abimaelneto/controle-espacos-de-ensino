@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { StudentsController } from './presentation/http/controllers/students.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
@@ -19,6 +20,8 @@ import { KafkaEventPublisherAdapter } from './infrastructure/adapters/messaging/
 import { NoopEventPublisherAdapter } from './infrastructure/adapters/messaging/noop/noop-event-publisher.adapter';
 import type { IStudentRepository } from './domain/ports/repositories/student.repository.port';
 import type { IEventPublisher } from './domain/ports/messaging/event-publisher.port';
+import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from './presentation/http/guards/roles.guard';
 
 const STUDENT_REPOSITORY = 'STUDENT_REPOSITORY';
 const EVENT_PUBLISHER = 'EVENT_PUBLISHER';
@@ -38,6 +41,17 @@ const isTrue = (value?: string | null) =>
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([StudentEntity]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      // @ts-expect-error - expiresIn accepts string in runtime, type definition is strict
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [StudentsController, MetricsController],
   providers: [
@@ -137,6 +151,9 @@ const isTrue = (value?: string | null) =>
     },
     // Metrics
     BusinessMetricsService,
+    // Guards
+    JwtAuthGuard,
+    RolesGuard,
   ],
   exports: [STUDENT_REPOSITORY, EVENT_PUBLISHER, BusinessMetricsService],
 })

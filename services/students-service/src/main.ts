@@ -16,8 +16,10 @@ async function bootstrap() {
     }),
   );
 
-  // Global prefix
-  app.setGlobalPrefix('api/v1');
+  // Global prefix (excluir metrics do prefixo)
+  app.setGlobalPrefix('api/v1', {
+    exclude: ['/metrics'],
+  });
 
   // Exception filter
   app.useGlobalFilters(new HttpExceptionFilter());

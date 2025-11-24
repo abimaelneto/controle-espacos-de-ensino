@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
+import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from './presentation/http/guards/roles.guard';
 import { AnalyticsController } from './presentation/http/controllers/analytics.controller';
 import { MetricsController } from './presentation/http/controllers/metrics.controller';
 import { GetRoomUsageStatsUseCase } from './application/use-cases/get-room-usage-stats.use-case';
@@ -39,6 +42,16 @@ const isTrue = (value?: string | null) =>
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([MetricEntity]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        secret: config.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1h'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [AnalyticsController, MetricsController],
   providers: [
@@ -93,6 +106,9 @@ const isTrue = (value?: string | null) =>
     },
     BusinessMetricsService,
     RealtimeEventsGateway,
+    // Guards
+    JwtAuthGuard,
+    RolesGuard,
     {
       provide: AttendanceEventHandlerService,
       useFactory: (
