@@ -27,3 +27,4 @@ export class AttendanceCheckedOutEvent implements IDomainEvent {
   }
 }
 
+

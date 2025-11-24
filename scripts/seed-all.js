@@ -17,8 +17,42 @@
  * - Serviços rodando (npm run dev) - opcional, mas recomendado
  */
 
-const { execSync } = require('child_process');
+const { execSync, spawn } = require('child_process');
 const path = require('path');
+const axios = require('axios');
+
+const ROOT_DIR = path.resolve(__dirname, '..');
+const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
+const SERVICE_CONFIG = {
+  auth: {
+    name: 'Auth',
+    url: 'http://localhost:3000/health',
+    startScript: 'dev:auth',
+  },
+  students: {
+    name: 'Students',
+    url: 'http://localhost:3001/health',
+    startScript: 'dev:students',
+  },
+  rooms: {
+    name: 'Rooms',
+    url: 'http://localhost:3002/health',
+    startScript: 'dev:spaces',
+  },
+  checkin: {
+    name: 'Check-in',
+    url: 'http://localhost:3003/health',
+    startScript: 'dev:checkin',
+  },
+  analytics: {
+    name: 'Analytics',
+    url: 'http://localhost:3004/health',
+    startScript: 'dev:analytics',
+  },
+};
+
+const CORE_SERVICES = ['auth', 'students', 'rooms', 'checkin'];
 
 // Cores para output
 const colors = {
@@ -31,8 +65,14 @@ const colors = {
   magenta: '\x1b[35m',
 };
 
+let startedProcesses = [];
+
 function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function execCommand(command, description, cwd = process.cwd(), timeout = 30000) {
@@ -109,29 +149,27 @@ async function runSeeds() {
 async function checkServices() {
   log('\n🔍 Verificando serviços...', 'blue');
   
-  const axios = require('axios');
-  const services = [
-    { name: 'Auth', url: 'http://localhost:3000/api/v1/metrics' },
-    { name: 'Students', url: 'http://localhost:3001/metrics' },
-    { name: 'Rooms', url: 'http://localhost:3002/metrics' },
-    { name: 'Check-in', url: 'http://localhost:3003/metrics' },
-    { name: 'Analytics', url: 'http://localhost:3004/metrics' },
-  ];
-
+  const availability = {};
   let availableCount = 0;
-  for (const service of services) {
+  for (const [key, service] of Object.entries(SERVICE_CONFIG)) {
     try {
       const response = await axios.get(service.url, { 
         timeout: 3000,
         validateStatus: () => true // Aceitar qualquer status code
       });
-      if (response.status < 500) { // 2xx, 3xx, 4xx = serviço está rodando
+      const available = response.status < 500;
+      availability[key] = {
+        available,
+        status: response.status,
+      };
+      if (available) {
         log(`  ✅ ${service.name} Service disponível`, 'green');
         availableCount++;
       } else {
         log(`  ⚠️  ${service.name} Service com erro (status ${response.status})`, 'yellow');
       }
     } catch (error) {
+      availability[key] = { available: false, error };
       if (error.code === 'ECONNREFUSED') {
         log(`  ⚠️  ${service.name} Service não disponível (opcional)`, 'yellow');
       } else {
@@ -142,11 +180,105 @@ async function checkServices() {
 
   if (availableCount === 0) {
     log('\n⚠️  Nenhum serviço está rodando. Alguns seeds podem falhar.', 'yellow');
-    log('   Execute: npm run dev (em outro terminal)', 'yellow');
+    log('   Os serviços essenciais serão iniciados automaticamente, se necessário.', 'yellow');
   } else {
-    log(`\n✅ ${availableCount}/${services.length} serviços disponíveis`, 'green');
+    log(`\n✅ ${availableCount}/${Object.keys(SERVICE_CONFIG).length} serviços disponíveis`, 'green');
   }
+
+  return availability;
 }
+
+async function waitForService(key, timeoutMs = 60000) {
+  const service = SERVICE_CONFIG[key];
+  const start = Date.now();
+  log(`🔄 Aguardando ${service.name} ficar disponível...`, 'cyan');
+  while (Date.now() - start < timeoutMs) {
+    try {
+      const response = await axios.get(service.url, {
+        timeout: 3000,
+        validateStatus: () => true,
+      });
+      if (response.status < 500) {
+        log(`   ✅ ${service.name} pronto`, 'green');
+        return true;
+      }
+    } catch (error) {
+      // Ignorar e continuar aguardando
+    }
+    await sleep(1500);
+  }
+
+  return false;
+}
+
+async function ensureCoreServices(availability) {
+  const missing = CORE_SERVICES.filter((serviceKey) => !availability[serviceKey]?.available);
+  if (missing.length === 0) {
+    return availability;
+  }
+
+  log('\n⚙️  Iniciando serviços essenciais para executar os seeds...', 'cyan');
+
+  for (const serviceKey of missing) {
+    const service = SERVICE_CONFIG[serviceKey];
+    if (!service?.startScript) {
+      log(`  ⚠️  Sem script para iniciar ${service.name}. Pule ou inicie manualmente.`, 'yellow');
+      continue;
+    }
+
+    log(`  ▶️  Iniciando ${service.name} (${service.startScript})`, 'cyan');
+    const child = spawn(
+      npmCmd,
+      ['run', service.startScript],
+      {
+        cwd: ROOT_DIR,
+        stdio: 'inherit',
+        env: { ...process.env, FORCE_COLOR: '1' },
+      },
+    );
+
+    startedProcesses.push({ key: serviceKey, child });
+  }
+
+  for (const serviceKey of missing) {
+    const ready = await waitForService(serviceKey);
+    if (!ready) {
+      throw new Error(`${SERVICE_CONFIG[serviceKey].name} Service não ficou disponível a tempo. Confira "npm run dev:${serviceKey}".`);
+    }
+    availability[serviceKey] = { available: true, status: 200 };
+  }
+
+  log('\n✅ Serviços essenciais disponíveis para os seeds', 'green');
+  return availability;
+}
+
+async function shutdownServices(processes) {
+  if (!processes.length) {
+    return;
+  }
+
+  log('\n🛑 Encerrando serviços temporários iniciados para os seeds...', 'cyan');
+  const shutdownPromises = processes.map(({ child }) => new Promise((resolve) => {
+    if (!child || child.killed) {
+      return resolve();
+    }
+    child.once('exit', () => resolve());
+    child.kill('SIGINT');
+    setTimeout(() => resolve(), 5000);
+  }));
+
+  await Promise.all(shutdownPromises);
+}
+
+process.on('SIGINT', async () => {
+  await shutdownServices(startedProcesses);
+  process.exit(1);
+});
+
+process.on('SIGTERM', async () => {
+  await shutdownServices(startedProcesses);
+  process.exit(1);
+});
 
 async function main() {
   log('\n🚀 Iniciando processo completo de seed...\n', 'blue');
@@ -159,7 +291,10 @@ async function main() {
 
   try {
     // Verificar serviços (opcional, mas útil)
-    await checkServices();
+    let serviceAvailability = await checkServices();
+
+    // Garantir serviços essenciais
+    serviceAvailability = await ensureCoreServices(serviceAvailability);
 
     // Executar migrations (opcional - pode pular se já foram executadas)
     let migrationsOk = true;
@@ -201,8 +336,12 @@ async function main() {
     }
     
     log('');
+    await shutdownServices(startedProcesses);
+    startedProcesses = [];
     
   } catch (error) {
+    await shutdownServices(startedProcesses);
+    startedProcesses = [];
     log(`\n❌ Erro fatal: ${error.message}`, 'red');
     if (error.stack) {
       log(`\nStack trace:`, 'red');
