@@ -15,6 +15,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global prefix
+  app.setGlobalPrefix('api/v1');
+
   // CORS
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:5174',
@@ -34,10 +37,11 @@ async function bootstrap() {
     .setDescription('API para registro de entrada e saída de alunos')
     .setVersion('1.0')
     .addTag('checkin')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Prometheus metrics
   register.setDefaultLabels({ service: 'checkin-service' });
@@ -45,6 +49,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3003;
   await app.listen(port);
   console.log(`🚀 Check-in Service running on: http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
   console.log(`📊 Metrics: http://localhost:${port}/metrics`);
 }
 

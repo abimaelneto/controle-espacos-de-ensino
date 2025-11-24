@@ -17,7 +17,7 @@ import { PerformCheckInDto } from '../../../application/dto/perform-checkin.dto'
 import { PerformCheckOutDto } from '../../../application/dto/checkout.dto';
 
 @ApiTags('checkin')
-@Controller('api/v1/checkin')
+@Controller('checkin')
 export class CheckInController {
   constructor(
     private readonly performCheckInUseCase: PerformCheckInUseCase,

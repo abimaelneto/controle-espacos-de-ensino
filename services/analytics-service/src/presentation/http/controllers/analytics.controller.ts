@@ -10,7 +10,7 @@ import { DashboardStatsDto } from '../../../application/dto/dashboard-stats.dto'
 import { StudentStatsDto } from '../../../application/dto/student-stats.dto';
 
 @ApiTags('analytics')
-@Controller('api/v1/analytics')
+@Controller('analytics')
 export class AnalyticsController {
   constructor(
     private readonly getRoomUsageStatsUseCase: GetRoomUsageStatsUseCase,

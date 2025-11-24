@@ -15,6 +15,9 @@ async function bootstrap() {
     }),
   );
 
+  // Global prefix
+  app.setGlobalPrefix('api/v1');
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -34,10 +37,11 @@ async function bootstrap() {
     .setDescription('API para análises e relatórios de uso de espaços')
     .setVersion('1.0')
     .addTag('analytics')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Prometheus metrics
   register.setDefaultLabels({ service: 'analytics-service' });
@@ -45,6 +49,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3004;
   await app.listen(port);
   console.log(`🚀 Analytics Service running on: http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
   console.log(`📊 Metrics: http://localhost:${port}/metrics`);
 }
 

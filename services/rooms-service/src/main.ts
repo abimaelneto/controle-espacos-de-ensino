@@ -41,10 +41,11 @@ async function bootstrap() {
     .setDescription('API para gerenciamento de salas de ensino')
     .setVersion('1.0')
     .addTag('rooms')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api/docs', app, document);
 
   // Prometheus metrics
   register.setDefaultLabels({ service: 'rooms-service' });
@@ -52,6 +53,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3002;
   await app.listen(port);
   console.log(`🚀 Rooms Service running on: http://localhost:${port}`);
+  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
   console.log(`📊 Metrics: http://localhost:${port}/metrics`);
 }
 
