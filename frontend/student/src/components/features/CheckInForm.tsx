@@ -21,7 +21,7 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
   const [value, setValue] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [successType, setSuccessType] = useState<'checkin' | 'checkout' | null>(null);
   const [activeAttendance, setActiveAttendance] = useState<any>(null);
   const [checkingActive, setCheckingActive] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
@@ -79,12 +79,12 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
       const response = await checkInService.performCheckOut(checkoutRequest);
 
       if (response.success) {
-        setSuccess(true);
+        setSuccessType('checkout');
         setValue('');
         // Atualizar imediatamente
         await refreshActiveAttendance();
         setTimeout(() => {
-          setSuccess(false);
+          setSuccessType(null);
         }, 2000);
       } else {
         setError(response.message || 'Erro ao realizar checkout');
@@ -101,7 +101,7 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
     e.preventDefault();
     setLoading(true);
     setError(null);
-    setSuccess(false);
+    setSuccessType(null);
 
     try {
       if (!validateInput(method, value)) {
@@ -126,11 +126,11 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
       const response = await checkInService.performCheckIn(request);
 
       if (response.success) {
-        setSuccess(true);
+        setSuccessType('checkin');
         // Atualizar imediatamente após check-in
         await refreshActiveAttendance();
         setTimeout(() => {
-          setSuccess(false);
+          setSuccessType(null);
           onSuccess?.();
         }, 2000);
       } else {
@@ -174,7 +174,6 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
   };
 
   const isInSameRoom = activeAttendance && activeAttendance.roomId === roomId;
-  const isInDifferentRoom = activeAttendance && activeAttendance.roomId !== roomId;
 
   return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
@@ -182,18 +181,17 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
       {activeAttendance && (
         <Card className="border-2 border-blue-500 bg-blue-50">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <CheckCircle2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-1" />
                 <div>
-                  <p className="font-semibold text-blue-900">
-                    Check-in ativo
+                  <p className="font-semibold text-blue-900 mb-1">
+                    {isInSameRoom ? 'Você já está nesta sala' : 'Check-in ativo em outra sala'}
                   </p>
                   <p className="text-sm text-blue-800">
-                    {isInSameRoom 
-                      ? `Você está na sala ${roomNumber}`
-                      : `Você está na sala ${currentRoomNumber || 'N/A'}`
-                    }
+                    {isInSameRoom
+                      ? `Você já possui um check-in ativo na sala ${roomNumber}.`
+                      : `Você possui um check-in ativo na sala ${currentRoomNumber || 'N/A'}. Faça checkout para entrar na sala ${roomNumber}.`}
                   </p>
                 </div>
               </div>
@@ -215,17 +213,6 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Aviso se está em outra sala */}
-      {isInDifferentRoom && (
-        <Card className="border-2 border-orange-500 bg-orange-50">
-          <CardContent className="p-4">
-            <p className="text-sm text-orange-800">
-              ⚠️ Você possui um check-in ativo em outra sala. Faça checkout primeiro para fazer check-in nesta sala.
-            </p>
           </CardContent>
         </Card>
       )}
@@ -315,14 +302,14 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
             </div>
 
             {/* Feedback de Validação */}
-            {value && !error && !success && checkingActive && (
+            {value && !error && !successType && checkingActive && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Verificando...</span>
               </div>
             )}
 
-            {value && !error && !success && !checkingActive && (
+            {value && !error && !successType && !checkingActive && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 {validateInput(method, value) ? (
                   <>
@@ -349,12 +336,14 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
             )}
 
             {/* Mensagem de Sucesso */}
-            {success && (
+            {successType && (
               <div className="p-3 sm:p-4 bg-[#8a0538]/10 border-2 border-[#8a0538] rounded-lg">
                 <div className="flex items-center gap-2 text-[#8a0538]">
                   <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
                   <span className="font-semibold text-sm sm:text-base">
-                    {activeAttendance ? 'Check-out realizado com sucesso!' : 'Check-in realizado com sucesso!'}
+                    {successType === 'checkout'
+                      ? 'Check-out realizado com sucesso!'
+                      : 'Check-in realizado com sucesso!'}
                   </span>
                 </div>
               </div>

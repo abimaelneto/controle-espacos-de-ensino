@@ -4,7 +4,7 @@ import CheckInForm from '@/components/features/CheckInForm';
 import RoomSelector from '@/components/features/RoomSelector';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Clock, ArrowLeft, LogOut, DoorOpen } from 'lucide-react';
+import { Building2, Clock, ArrowLeft, LogOut } from 'lucide-react';
 import { roomsService } from '@/services/rooms.service';
 import { recentRoomsStorage } from '@/utils/localStorage';
 import { useAuthStore } from '@/stores/auth.store';
@@ -80,26 +80,15 @@ export default function CheckIn() {
                   <div className="text-[#505050]/70">{user.role}</div>
                 </div>
               )}
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => navigate('/checkout')}
-                  className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
-                >
-                  <DoorOpen className="h-4 w-4 mr-2" />
-                  Checkout
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sair
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
             </div>
           </div>
 
@@ -141,46 +130,27 @@ export default function CheckIn() {
                 <div className="text-[#505050]/70">{user.role}</div>
               </div>
             )}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/checkout')}
-                className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
-              >
-                <DoorOpen className="h-4 w-4 mr-2" />
-                Checkout
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sair
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
           </div>
         </div>
 
         {/* Botões de Navegação */}
-        <div className="max-w-2xl mx-auto mb-4 flex gap-2">
+        <div className="max-w-2xl mx-auto mb-4">
           <Button
             variant="outline"
             onClick={() => setSearchParams({})}
-            className="flex-1"
+            className="w-full sm:w-auto"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Escolher Outra Sala
-          </Button>
-          <Button
-            variant="outline"
-            onClick={() => navigate('/checkout')}
-            className="flex-1 border-[#8a0538] text-[#8a0538] hover:bg-[#8a0538] hover:text-white"
-          >
-            <DoorOpen className="h-4 w-4 mr-2" />
-            Fazer Checkout
           </Button>
         </div>
 
