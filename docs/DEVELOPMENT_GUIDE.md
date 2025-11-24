@@ -170,6 +170,70 @@ npm run dev:frontend
 
 > **Nota:** Para produção com API Gateway, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
+## 🔐 Autenticação e Autorização
+
+### Visão Geral
+
+O sistema utiliza **JWT (JSON Web Tokens)** para autenticação e autorização baseada em roles.
+
+**Arquitetura:**
+- **Auth Service** (Porta 3000) - Gera tokens JWT
+- **Outros Serviços** (3001-3004) - Validam tokens JWT independentemente
+- **Frontend** - Gerencia login, logout e adiciona tokens automaticamente
+
+### Backend - Proteger Endpoint
+
+```typescript
+import { Controller, Post, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { RolesGuard } from '../guards/roles.guard';
+import { Roles } from '../decorators/roles.decorator';
+
+@Controller('students')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@ApiBearerAuth()
+export class StudentsController {
+  @Post()
+  @Roles('ADMIN')
+  async create(@Body() dto: CreateStudentDto) {
+    // Apenas ADMIN pode criar
+  }
+
+  @Get()
+  @Roles('ADMIN', 'MONITOR')
+  async findAll() {
+    // ADMIN e MONITOR podem listar
+  }
+}
+```
+
+### Frontend - Login
+
+```typescript
+import { useAuthStore } from '@/stores/auth.store';
+
+const { login } = useAuthStore();
+await login({ email, password });
+// Token é armazenado automaticamente
+// Interceptor adiciona token em todas as requisições
+```
+
+### Configuração
+
+**Todos os serviços devem usar o mesmo `JWT_SECRET`:**
+
+```env
+# Auth Service
+JWT_SECRET=seu-jwt-secret-aqui
+JWT_EXPIRES_IN=1h
+
+# Outros Serviços (Students, Rooms, Check-in, Analytics)
+JWT_SECRET=mesmo-secret-do-auth-service
+JWT_EXPIRES_IN=1h
+```
+
+**Documentação Completa:** [Guia de Autenticação JWT](./security/AUTHENTICATION.md)
+
 ## 📝 Padrões de Código
 
 ### TypeScript

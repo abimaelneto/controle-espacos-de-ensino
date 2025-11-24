@@ -104,6 +104,7 @@ docs/
 
 ### Segurança
 - [Política de Segurança](security/SECURITY.md)
+- [Guia de Autenticação JWT](security/AUTHENTICATION.md) - **Autenticação e autorização completa** ⭐
 - [Race Conditions](security/RACE_CONDITIONS_SOLUTIONS.md)
 
 ### Demonstração e Avaliação

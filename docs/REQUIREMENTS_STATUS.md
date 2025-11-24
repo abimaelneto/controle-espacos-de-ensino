@@ -5,8 +5,8 @@
 ### Backend
 - ✅ **CRUD completo para cadastro de alunos** - Students Service implementado
 - ✅ **Registro de entrada nos ambientes** - Check-in Service implementado (check-out removido por decisão de negócio)
-- ✅ **API REST com autenticação via token** - Auth Service com JWT
-- ✅ **Autorização adequada para operações** - Guards e roles implementados
+- ✅ **API REST com autenticação via token** - Auth Service com JWT implementado
+- ✅ **Autorização adequada para operações** - Guards e roles implementados em todos os serviços
 - ✅ **Back-end: Node.js** - NestJS implementado
 - ✅ **Persistência de dados** - MySQL com TypeORM
 
@@ -14,6 +14,7 @@
 - ✅ **Front-end: React** - Admin e Student frontends implementados
 - ✅ **Interface para alunos fazerem check-in** - UI completa com múltiplos métodos de identificação
 - ✅ **Integração frontend com APIs** - Services e stores implementados
+- ✅ **Autenticação JWT completa** - Login, logout, rotas protegidas e interceptors implementados
 
 ## ✅ Funcionalidades Implementadas
 

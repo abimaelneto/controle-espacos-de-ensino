@@ -48,23 +48,28 @@ O sistema é composto por **5 microsserviços independentes**, cada um com seu p
 
 1. **auth-service** (Porta 3000) - Autenticação e autorização (Identity Context)
    - JWT tokens, refresh tokens, roles e permissões
+   - Gera tokens JWT que são validados por outros serviços
    - Banco: `identity` (MySQL na porta 3306)
 
 2. **students-service** (Porta 3001) - Gestão de alunos (Academic Context)
    - CRUD de alunos, validação de dados acadêmicos
+   - Protegido com JWT authentication e role-based authorization
    - Banco: `academic` (MySQL na porta 3307)
 
 3. **rooms-service** (Porta 3002) - Gestão de salas e ambientes (Facilities Context)
    - CRUD de salas, tipos de ambiente, capacidade
+   - Protegido com JWT authentication e role-based authorization
    - Banco: `facilities` (MySQL na porta 3308)
 
 4. **checkin-service** (Porta 3003) - Registro de entrada e saída (Attendance Context)
    - Check-in/check-out de alunos, validação de capacidade
+   - Protegido com JWT authentication e role-based authorization
    - Proteções contra race conditions (locks distribuídos, idempotência)
    - Banco: `facilities` (compartilhado com rooms-service)
 
 5. **analytics-service** (Porta 3004) - Análise e relatórios (Analytics Context)
    - Métricas de ocupação, dashboards, estatísticas
+   - Protegido com JWT authentication e role-based authorization
    - Consome eventos do Kafka para processamento assíncrono
    - Banco: `analytics` (MySQL na porta 3309)
 
@@ -72,9 +77,13 @@ O sistema é composto por **5 microsserviços independentes**, cada um com seu p
 
 - **frontend/admin** (Porta 5173) - Interface administrativa
   - Gestão de alunos, salas, dashboard, analytics
+  - Autenticação JWT completa com login, logout e rotas protegidas
+  - Interceptors axios para adicionar token automaticamente
 
 - **frontend/student** (Porta 5174) - Interface do estudante
   - Check-in/check-out, seleção de sala
+  - Autenticação JWT completa com login e rotas protegidas
+  - Interceptors para serviços de check-in e rooms
 
 ## 🚀 Como Começar
 
@@ -122,12 +131,19 @@ npm run seed:all
 # 7. Inicie todos os serviços (em outro terminal)
 npm run dev
 
-# 8. Aguarde 30-60 segundos para serviços iniciarem, depois crie usuário admin:
-node scripts/create-admin-user.js
+# 8. Aguarde 30-60 segundos para serviços iniciarem
+# O usuário admin já foi criado pelo seed:all (passo 6)
+# Se precisar criar manualmente ou se o login falhar, execute:
+# node scripts/create-admin-user.js
 
 # 9. Acesse o frontend admin e faça login:
+# URL: http://localhost:5173
 # Email: admin@observability.local
 # Senha: Admin123!
+#
+# Se receber "credenciais inválidas":
+# - Execute: node scripts/create-admin-user.js (cria/recria o usuário)
+# - Aguarde alguns segundos após criar o usuário antes de tentar login
 ```
 
 **Acesso aos serviços:**
@@ -184,6 +200,7 @@ npm run dev:student   # Apenas Frontend Student
 ### 📖 Documentação Essencial
 - [Arquitetura do Sistema](./docs/architecture/ARCHITECTURE.md) - Visão arquitetural completa
 - [Guia de Desenvolvimento](./docs/DEVELOPMENT_GUIDE.md) - Guia para desenvolvedores
+- [Guia de Autenticação JWT](./docs/security/AUTHENTICATION.md) - **Autenticação e autorização completa** ⭐
 - [Documentação de APIs](./docs/api/API_DOCUMENTATION.md) - APIs consolidadas
 - [Estratégia de Testes](./docs/testing/TESTING_STRATEGY.md) - Estratégia completa de testes
 - [Decisões de Design](./docs/architecture/DESIGN_DECISIONS.md) - ADRs (Architecture Decision Records)
@@ -201,6 +218,7 @@ npm run dev:student   # Apenas Frontend Student
 - [Observabilidade](./docs/observability/OBSERVABILITY_COMPLETE.md) - Prometheus + Grafana
 - [Testes de Performance](./docs/testing/PERFORMANCE_TESTS.md) - Testes de carga e stress
 - [Política de Segurança](./docs/security/SECURITY.md) - Segurança do sistema
+- [Guia de Autenticação JWT](./docs/security/AUTHENTICATION.md) - **Autenticação e autorização** ⭐
 - [Race Conditions](./docs/security/RACE_CONDITIONS_SOLUTIONS.md) - Soluções para concorrência
 
 ### 📊 Diagramas e Visualizações
@@ -347,7 +365,12 @@ Para um guia detalhado de teste do zero, consulte:
 
 ---
 
-## ⚠️ Ressalvas e Limitações do Projeto
+## Ressalvas
+
+- Por conta do prazo de entrega, não foi possível garantir a estrutura completa 100% funcional, o que incluiria observabilidade perfeita, monitoramente de saúde dos serviços, teste de stress impecável e testes automatizados com cobertura alta e todos passando. 
+- A ideia, de qualquer forma, é demonstrar a valorização dos diversos conceitos de engenharia de software, sem deixar a funcionalidade de lado. 
+
+## ⚠️ Limitações do Projeto
 
 ### Contexto de Desenvolvimento
 
@@ -366,10 +389,14 @@ Este projeto foi desenvolvido como **case técnico** para processo seletivo, com
    - API Gateway (Traefik) documentado mas não implementado para desenvolvimento local
 
 2. **Autenticação e Segurança**
-   - JWT implementado, mas sem refresh token automático no frontend
-   - Sem rate limiting implementado
-   - Sem validação de CSRF tokens
-   - Senhas armazenadas com hash, mas sem política de complexidade forçada
+   - ✅ JWT implementado em todos os serviços (backend e frontend)
+   - ✅ Autenticação completa com login, logout e rotas protegidas
+   - ✅ Role-based authorization (ADMIN, STUDENT, MONITOR)
+   - ⚠️ Refresh token automático não implementado no frontend
+   - ⚠️ Sem rate limiting implementado
+   - ⚠️ Sem validação de CSRF tokens
+   - ✅ Senhas armazenadas com hash (bcrypt)
+   - ⚠️ Sem política de complexidade forçada
 
 3. **Testes**
    - Cobertura de testes não completa (alguns serviços têm mais testes que outros)
@@ -519,4 +546,4 @@ MIT
 
 ## 👤 Autor
 
-Desenvolvido para o processo seletivo PUCPR - 2025
+Desenvolvido por Abimael Neto para o processo seletivo PUCPR - 2025

@@ -14,6 +14,22 @@ Documentação consolidada de todas as APIs do sistema.
 
 ## 🔐 Autenticação
 
+> **📘 Documentação Completa:** Veja [Guia de Autenticação JWT](../security/AUTHENTICATION.md) para detalhes completos sobre autenticação e autorização.
+
+### Visão Geral
+
+O sistema utiliza **JWT (JSON Web Tokens)** para autenticação e autorização baseada em roles (RBAC).
+
+**Arquitetura:**
+- **Auth Service** gera tokens JWT usando `JWT_SECRET`
+- **Outros serviços** validam tokens usando o mesmo `JWT_SECRET`
+- **Frontend** gerencia login, logout e adiciona tokens automaticamente via interceptors
+
+**Roles Disponíveis:**
+- `ADMIN` - Acesso total
+- `MONITOR` - Acesso para monitoramento
+- `STUDENT` - Acesso limitado (próprios dados)
+
 ### Base URL
 - Local: `http://localhost:3000`
 
@@ -88,6 +104,25 @@ Authorization: Bearer <refresh-token>
 
 **Swagger**: http://localhost:3000/api/docs
 
+### Como Usar
+
+**1. Fazer Login:**
+```bash
+curl -X POST http://localhost:3000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "admin@example.com", "password": "password123"}'
+```
+
+**2. Usar Token em Requisições:**
+```bash
+curl -X GET http://localhost:3001/api/v1/students \
+  -H "Authorization: Bearer <access-token>"
+```
+
+**3. Frontend (Automático):**
+- Token é adicionado automaticamente via interceptors axios
+- Em caso de erro 401, redireciona para login
+
 ---
 
 ## 🎓 Students Service
@@ -97,9 +132,21 @@ Authorization: Bearer <refresh-token>
 - Via Traefik: `http://api.localhost`
 
 ### Autenticação
-Todos os endpoints requerem JWT token:
-```
-Authorization: Bearer <access-token>
+Todos os endpoints requerem JWT token no header `Authorization: Bearer <token>`.
+
+**Roles Permitidas por Endpoint:**
+- `POST /students` - ADMIN
+- `GET /students` - ADMIN, MONITOR
+- `GET /students/:id` - ADMIN, MONITOR, STUDENT (próprio ID)
+- `PUT /students/:id` - ADMIN
+- `DELETE /students/:id` - ADMIN
+- `GET /students/cpf/:cpf` - ADMIN, MONITOR
+- `GET /students/matricula/:matricula` - ADMIN, MONITOR
+
+**Exemplo de Requisição:**
+```bash
+curl -X GET http://localhost:3001/api/v1/students \
+  -H "Authorization: Bearer <access-token>"
 ```
 
 ### Endpoints
@@ -224,7 +271,20 @@ Busca aluno por matrícula.
 - Via Traefik: `http://api.localhost`
 
 ### Autenticação
-Todos os endpoints requerem JWT token.
+Todos os endpoints requerem JWT token no header `Authorization: Bearer <token>`.
+
+**Roles Permitidas por Endpoint:**
+- `POST /rooms` - ADMIN
+- `GET /rooms` - ADMIN, MONITOR, STUDENT
+- `GET /rooms/:id` - ADMIN, MONITOR, STUDENT
+- `PUT /rooms/:id` - ADMIN
+- `DELETE /rooms/:id` - ADMIN
+
+**Exemplo de Requisição:**
+```bash
+curl -X GET http://localhost:3002/api/v1/rooms \
+  -H "Authorization: Bearer <access-token>"
+```
 
 ### Endpoints
 
@@ -311,7 +371,21 @@ Deleta uma sala (soft delete).
 - Via Traefik: `http://api.localhost`
 
 ### Autenticação
-Todos os endpoints requerem JWT token.
+Todos os endpoints requerem JWT token no header `Authorization: Bearer <token>`.
+
+**Roles Permitidas por Endpoint:**
+- `POST /checkin` - ADMIN, STUDENT
+- `GET /checkin/history/:studentId` - ADMIN, MONITOR, STUDENT (próprio ID)
+- `GET /checkin/active` - ADMIN, MONITOR, STUDENT
+- `POST /checkin/checkout` - ADMIN, STUDENT
+
+**Exemplo de Requisição:**
+```bash
+curl -X POST http://localhost:3003/api/v1/checkin \
+  -H "Authorization: Bearer <access-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"studentId": "...", "roomId": "...", ...}'
+```
 
 ### Endpoints
 
@@ -390,7 +464,21 @@ Histórico de check-ins.
 - Via Traefik: `http://api.localhost`
 
 ### Autenticação
-Todos os endpoints requerem JWT token.
+Todos os endpoints requerem JWT token no header `Authorization: Bearer <token>`.
+
+**Roles Permitidas por Endpoint:**
+- `GET /analytics/dashboard` - ADMIN, MONITOR
+- `GET /analytics/rooms/stats` - ADMIN, MONITOR
+- `GET /analytics/rooms/:roomId/usage` - ADMIN, MONITOR
+- `GET /analytics/rooms/:roomId/timeline` - ADMIN, MONITOR
+- `GET /analytics/students/:studentId/stats` - ADMIN, MONITOR, STUDENT (próprio ID)
+- `GET /analytics/rooms/realtime` - ADMIN, MONITOR
+
+**Exemplo de Requisição:**
+```bash
+curl -X GET http://localhost:3004/api/v1/analytics/dashboard \
+  -H "Authorization: Bearer <access-token>"
+```
 
 ### Endpoints
 

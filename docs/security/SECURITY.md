@@ -29,12 +29,27 @@
 
 ## 🔐 Autenticação
 
+> **📘 Documentação Completa:** Veja [Guia de Autenticação JWT](./AUTHENTICATION.md) para detalhes completos sobre implementação, uso e troubleshooting.
+
 ### JWT Tokens
 
-- **Access Token**: Expira em 1 hora
-- **Refresh Token**: Expira em 7 dias
+- **Access Token**: Expira em 1 hora (configurável via `JWT_EXPIRES_IN`)
+- **Refresh Token**: Expira em 7 dias (configurável via `JWT_REFRESH_EXPIRES_IN`)
 - **Algoritmo**: HS256
-- **Storage**: HttpOnly cookies (recomendado) ou localStorage
+- **Storage**: localStorage (frontend) - HttpOnly cookies recomendado para produção
+- **Arquitetura**: Auth Service gera tokens, outros serviços validam independentemente
+
+### Arquitetura de Autenticação
+
+**Como Funciona:**
+1. Auth Service (Porta 3000) gera tokens JWT usando `JWT_SECRET`
+2. Outros serviços (3001-3004) validam tokens usando o mesmo `JWT_SECRET`
+3. Frontend gerencia login, logout e adiciona tokens automaticamente via interceptors
+4. Cada serviço valida tokens independentemente (stateless)
+
+**Configuração:**
+- Todos os serviços devem usar o **mesmo** `JWT_SECRET`
+- Tokens são validados localmente em cada serviço (sem comunicação entre serviços)
 
 ### Senhas
 

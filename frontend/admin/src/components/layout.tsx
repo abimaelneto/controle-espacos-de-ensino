@@ -1,8 +1,9 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Home, Users, DoorOpen, BarChart, Activity } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Home, Users, DoorOpen, BarChart, Activity, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { useAuthStore } from '@/stores/auth.store';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,8 +11,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
 
   const isActive = (path: string) => location.pathname === path;
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -80,6 +88,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </Button>
           </Link>
         </nav>
+        <div className="p-4 border-t border-[#6d0429]">
+          <div className="mb-3 px-2 text-sm text-white/80">
+            <div className="font-medium">{user?.email || 'Usuário'}</div>
+            <div className="text-xs text-white/60">{user?.role || ''}</div>
+          </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-white hover:bg-white/10"
+            onClick={handleLogout}
+          >
+            <LogOut className="mr-2 h-4 w-4" /> Sair
+          </Button>
+        </div>
       </aside>
 
       {/* Main content */}

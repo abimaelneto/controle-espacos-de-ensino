@@ -43,7 +43,6 @@ const isTrue = (value?: string | null) =>
     TypeOrmModule.forFeature([StudentEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      // @ts-expect-error - expiresIn accepts string in runtime, type definition is strict
       useFactory: (config: ConfigService) => ({
         secret: config.get<string>('JWT_SECRET'),
         signOptions: {
