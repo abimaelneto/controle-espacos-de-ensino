@@ -9,12 +9,15 @@
     "shared/*"
   ],
   "scripts": {
+    "setup:env": "node scripts/setup-env.js",
+    "setup:dev": "bash scripts/install-dev-deps.sh",
+    "seed:all": "node scripts/seed-all.js",
+    "test:from-scratch": "bash scripts/test-from-scratch.sh",
+    "clean:all": "bash scripts/clean-all.sh",
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "docker:ps": "docker-compose ps",
-    "docker:up:minimal": "docker-compose -f docker-compose.minimal.yml up -d",
-    "docker:down:minimal": "docker-compose -f docker-compose.minimal.yml down",
     "dev": "concurrently -n \"AUTH,STUDENTS,ROOMS,CHECKIN,ANALYTICS,FRONTEND,STUDENT\" -c \"blue,green,yellow,magenta,cyan,white,red\" \"npm run dev:auth\" \"npm run dev:students\" \"npm run dev:spaces\" \"npm run dev:checkin\" \"npm run dev:analytics\" \"npm run dev:frontend\" \"npm run dev:student\"",
     "dev:auth": "cd services/auth-service && npm run start:dev",
     "dev:students": "cd services/students-service && npm run start:dev",
@@ -27,31 +30,7 @@
     "test:e2e": "cd frontend/admin && npm run test:e2e",
     "test:e2e:ui": "cd frontend/admin && npm run test:e2e:ui",
     "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces",
-    "perf:auth": "artillery run tests/performance/auth-login.yml",
-    "perf:checkin": "artillery run tests/performance/checkin-direct.yml",
-    "perf:checkin:real": "artillery run tests/performance/checkin-real.yml --output artillery-report.json && node tests/performance/scripts/validate-sla.js artillery-report.json",
-    "perf:checkin:direct": "artillery run tests/performance/checkin-direct-real.yml",
-    "perf:checkin:heavy": "artillery run tests/performance/checkin-heavy.yml --output artillery-report.json && node tests/performance/scripts/validate-sla.js artillery-report.json && node tests/performance/scripts/analyze-results.js artillery-report.json",
-    "perf:analyze": "node tests/performance/scripts/analyze-results.js artillery-report.json",
-    "perf:validate": "node tests/performance/scripts/validate-sla.js artillery-report.json",
-    "setup:env": "node scripts/setup-env.js",
-    "seed:all": "node scripts/seed-all.js",
-    "seed:all:skip-migrations": "node scripts/seed-all.js --skip-migrations",
-    "seed:observability": "node scripts/seed-observability.js",
-    "db:clean": "node scripts/clean-databases.js",
-    "worker:checkin": "node scripts/worker-checkin-test.js",
-    "worker:verify": "bash scripts/verify-worker-setup.sh",
-    "student:room": "node scripts/get-room-id.js --url",
-    "demo:case": "node scripts/demo-case-completo.js",
-    "list:data": "node scripts/list-worker-data.js",
-    "seed:clean": "npm run db:clean && npm run seed:all",
-    "seed:auto-fix": "node scripts/auto-fix-seed.js",
-    "perf:seed": "node tests/performance/scripts/seed-data.js",
-    "perf:cleanup": "node tests/performance/scripts/cleanup-data.js",
-    "perf:generate-metrics": "node tests/performance/scripts/generate-metrics.js",
-    "perf:generate-metrics:continuous": "node tests/performance/scripts/generate-metrics-continuous.js",
-    "perf:stress:realistic": "node tests/performance/scripts/generate-stress-realistic.js"
+    "lint": "npm run lint --workspaces"
   },
   "keywords": [
     "pucpr",
@@ -66,6 +45,7 @@
   "devDependencies": {
     "artillery": "^2.0.27",
     "axios": "^1.6.2",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "mysql2": "^3.15.3"
   }
 }
