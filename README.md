@@ -15,9 +15,10 @@ Este projeto foi desenvolvido como parte do processo seletivo para a vaga de **D
 ### 🎯 Objetivo
 
 Desenvolver uma aplicação web para controlar o uso de espaços de ensino, permitindo:
-- Registro de entrada e saída de alunos
+- Registro de entrada e saída de alunos (check-in/check-out)
 - Análise da taxa de ocupação dos ambientes
 - Gestão de diferentes tipos de ambientes (sala de aula, laboratório, sala de estudos)
+- Dashboard em tempo real com métricas de uso
 
 ## 🏗️ Arquitetura
 
@@ -27,30 +28,53 @@ Desenvolver uma aplicação web para controlar o uso de espaços de ensino, perm
 - NestJS + TypeScript
 - DDD (Domain-Driven Design)
 - Ports and Adapters (Hexagonal Architecture)
-- TypeORM + MySQL
-- Kafka para mensageria
-- Redis para cache
+- TypeORM + MySQL (database per service)
+- Kafka para mensageria assíncrona
+- Redis para cache, locks distribuídos e idempotência
 
 **Frontend:**
 - React + TypeScript + Vite
 - shadcn/ui + Tailwind CSS
 - Zustand para state management
-- TanStack Query
+- TanStack Query para data fetching
 
 **Infraestrutura (Desenvolvimento Local):**
 - **Docker Compose** - Infraestrutura local (MySQL, Kafka, Redis, Prometheus, Grafana)
 - **Observabilidade** - Prometheus + Grafana para métricas e monitoramento
 
-**Observabilidade:**
-- Prometheus (métricas)
-- Grafana (visualização)
-
 ### Microsserviços
 
-1. **auth-service** - Autenticação e autorização (Identity Context)
-2. **students-service** - Gestão de alunos (Academic Context)
-3. **spaces-service** - Gestão de ambientes e registros (Facilities Context)
-4. **analytics-service** - Análise e relatórios (Analytics Context)
+O sistema é composto por **5 microsserviços independentes**, cada um com seu próprio banco de dados:
+
+1. **auth-service** (Porta 3000) - Autenticação e autorização (Identity Context)
+   - JWT tokens, refresh tokens, roles e permissões
+   - Banco: `identity` (MySQL na porta 3306)
+
+2. **students-service** (Porta 3001) - Gestão de alunos (Academic Context)
+   - CRUD de alunos, validação de dados acadêmicos
+   - Banco: `academic` (MySQL na porta 3307)
+
+3. **rooms-service** (Porta 3002) - Gestão de salas e ambientes (Facilities Context)
+   - CRUD de salas, tipos de ambiente, capacidade
+   - Banco: `facilities` (MySQL na porta 3308)
+
+4. **checkin-service** (Porta 3003) - Registro de entrada e saída (Attendance Context)
+   - Check-in/check-out de alunos, validação de capacidade
+   - Proteções contra race conditions (locks distribuídos, idempotência)
+   - Banco: `facilities` (compartilhado com rooms-service)
+
+5. **analytics-service** (Porta 3004) - Análise e relatórios (Analytics Context)
+   - Métricas de ocupação, dashboards, estatísticas
+   - Consome eventos do Kafka para processamento assíncrono
+   - Banco: `analytics` (MySQL na porta 3309)
+
+### Frontend
+
+- **frontend/admin** (Porta 5173) - Interface administrativa
+  - Gestão de alunos, salas, dashboard, analytics
+
+- **frontend/student** (Porta 5174) - Interface do estudante
+  - Check-in/check-out, seleção de sala
 
 ## 🚀 Como Começar
 
@@ -70,7 +94,9 @@ npm --version           # Deve mostrar 9.x ou superior
 
 > **💡 Nota:** Com Docker instalado, você pode rodar toda a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana) sem precisar instalar nada adicional. Os serviços Node.js rodam localmente, mas toda a infraestrutura está containerizada.
 
-### Como Começar (Desenvolvimento Local)
+> **🧪 Teste do Zero:** Para testar como se fosse a primeira vez (simulando um avaliador), execute: `npm run test:from-scratch`. Isso limpa tudo e testa o projeto do zero.
+
+### Passo a Passo (Desenvolvimento Local)
 
 ```bash
 # 1. Clone e instale dependências
@@ -78,17 +104,30 @@ git clone <repository-url>
 cd controle-espacos-de-ensino
 npm install
 
-# 2. Configure variáveis de ambiente (cria .env.local a partir dos env.example)
+# 2. Instale dependências de desenvolvimento (tsx para hot-reload)
+npm run setup:dev
+
+# 3. Configure variáveis de ambiente (cria .env.local a partir dos env.example)
 npm run setup:env
 
-# 3. Suba a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
+# 4. Suba a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
 npm run docker:up
 
-# 4. Execute migrations e seeds
+# 5. Aguarde alguns segundos para MySQL inicializar completamente
+# (importante: MySQL precisa de tempo para estar pronto)
+
+# 6. Execute migrations e seeds (cria dados iniciais)
 npm run seed:all
 
-# 5. Inicie todos os serviços
+# 7. Inicie todos os serviços (em outro terminal)
 npm run dev
+
+# 8. Aguarde 30-60 segundos para serviços iniciarem, depois crie usuário admin:
+node scripts/create-admin-user.js
+
+# 9. Acesse o frontend admin e faça login:
+# Email: admin@observability.local
+# Senha: Admin123!
 ```
 
 **Acesso aos serviços:**
@@ -101,6 +140,13 @@ npm run dev
 - Frontend Student: `http://localhost:5174`
 - Grafana: `http://localhost:3005` (admin/admin)
 - Prometheus: `http://localhost:9090`
+
+**Swagger (Documentação da API):**
+- Auth: `http://localhost:3000/api/docs`
+- Students: `http://localhost:3001/api/docs`
+- Rooms: `http://localhost:3002/api/docs`
+- Check-in: `http://localhost:3003/api/docs`
+- Analytics: `http://localhost:3004/api/docs`
 
 **Verificação rápida:**
 ```bash
@@ -131,8 +177,8 @@ npm run dev:student   # Apenas Frontend Student
 ## 📚 Documentação
 
 ### 🚀 Início Rápido
+- [Guia de Demonstração](./docs/demonstration/DEMONSTRATION_GUIDE.md) - **Roteiro completo para demonstrar o projeto** ⭐
 - [Desenvolvimento Local](./docs/setup/LOCAL_DEVELOPMENT.md) - Setup e workflow local
-- [Guia de Demonstração](./docs/demonstration/DEMONSTRATION_GUIDE.md) - Roteiro completo para demonstrar o projeto
 - [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md) - Como fazer deploy em produção
 
 ### 📖 Documentação Essencial
@@ -185,68 +231,228 @@ cd services/auth-service && npm run test
 ```
 controle-espacos-de-ensino/
 ├── services/              # Microsserviços
-│   ├── auth-service/
-│   ├── students-service/
-│   ├── spaces-service/
-│   └── analytics-service/
+│   ├── auth-service/      # Porta 3000 - Identity Context
+│   ├── students-service/   # Porta 3001 - Academic Context
+│   ├── rooms-service/      # Porta 3002 - Facilities Context
+│   ├── checkin-service/    # Porta 3003 - Attendance Context
+│   └── analytics-service/  # Porta 3004 - Analytics Context
 ├── frontend/              # Frontend React
-│   └── web-app/
-├── infrastructure/        # Infraestrutura
-│   └── docker/
+│   ├── admin/             # Porta 5173 - Interface administrativa
+│   └── student/           # Porta 5174 - Interface do estudante
 ├── shared/                # Código compartilhado
 │   ├── types/
 │   ├── events/
 │   └── utils/
-└── docs/                  # Documentação
+├── scripts/               # Scripts auxiliares
+│   ├── setup-env.js       # Configura variáveis de ambiente
+│   ├── seed-all.js        # Executa migrations e seeds
+│   └── test-from-scratch.sh # Testa do zero
+├── docs/                  # Documentação
+└── docker-compose.yml     # Infraestrutura local
 ```
 
 ## 🔧 Scripts Disponíveis
 
-### Desenvolvimento Local
-- `npm run dev` - Inicia todos os serviços em paralelo (Docker Compose)
-- `npm run dev:auth` - Inicia apenas Auth Service
-- `npm run dev:students` - Inicia apenas Students Service
-- `npm run dev:spaces` - Inicia apenas Rooms/Spaces Service
-- `npm run dev:checkin` - Inicia apenas Check-in Service
-- `npm run dev:analytics` - Inicia apenas Analytics Service
-- `npm run dev:frontend` - Inicia apenas Frontend Admin
+### 🚀 Quick Start (Ordem Recomendada)
+1. `npm run setup:env` - **Configura variáveis de ambiente** (primeiro passo após clonar)
+2. `npm run docker:up` - **Sobe infraestrutura** (MySQL, Kafka, Redis, Prometheus, Grafana)
+3. `npm run seed:all` - **Executa migrations e seeds** (cria dados iniciais)
+4. `npm run dev` - **Inicia todos os serviços** (backend + frontend)
 
-### Setup e Configuração
-- `npm run setup:env` - **Cria arquivos .env.local a partir dos env.example** (execute após clonar)
-- `npm run seed:all` - **Executa todas as migrations e seeds** (recomendado)
-- `npm run seed:observability` - Seed apenas para observabilidade
-- `perf:seed` - Seed apenas para testes de performance
+### 🧹 Setup e Limpeza
+- `npm run setup:dev` - Instala dependências de desenvolvimento (tsx) em todos os serviços
+- `npm run setup:env` - Cria arquivos `.env.local` a partir dos `env.example`
+- `npm run seed:all` - Executa todas as migrations e seeds
+- `npm run test:from-scratch` - **Testa o projeto do zero** (limpa tudo e testa como avaliador)
+- `npm run clean:all` - Limpa tudo (containers, node_modules, .env.local, etc.)
 
-### Docker (Infraestrutura)
+### 🐳 Docker (Infraestrutura)
 - `npm run docker:up` - Sobe infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
 - `npm run docker:down` - Para a infraestrutura
 - `npm run docker:logs` - Ver logs dos containers
 - `npm run docker:ps` - Lista containers em execução
 
-### Testes
+### 💻 Desenvolvimento
+- `npm run dev` - Inicia todos os serviços em paralelo
+- `npm run dev:auth` - Apenas Auth Service
+- `npm run dev:students` - Apenas Students Service
+- `npm run dev:spaces` - Apenas Rooms Service
+- `npm run dev:checkin` - Apenas Check-in Service
+- `npm run dev:analytics` - Apenas Analytics Service
+- `npm run dev:frontend` - Apenas Frontend Admin
+- `npm run dev:student` - Apenas Frontend Student
+
+### 🧪 Testes
 - `npm run test` - Executa todos os testes
 - `npm run test:e2e` - Testes E2E do frontend
 - `npm run test:e2e:ui` - Testes E2E com interface
 
-### Build
+### 🏗️ Build e Qualidade
 - `npm run build` - Build de todos os serviços
 - `npm run lint` - Lint de todos os serviços
 
 ## 🌐 Acesso aos Serviços (Desenvolvimento Local)
 
-| Serviço | URL |
-|---------|-----|
-| Auth Service | `http://localhost:3000/api/v1/auth` |
-| Students Service | `http://localhost:3001/api/v1/students` |
-| Rooms Service | `http://localhost:3002/api/v1/rooms` |
-| Check-in Service | `http://localhost:3003/api/v1/checkin` |
-| Analytics Service | `http://localhost:3004/api/v1/analytics` |
-| Frontend Admin | `http://localhost:5173` |
-| Frontend Student | `http://localhost:5174` |
-| Grafana | `http://localhost:3005` (admin/admin) |
-| Prometheus | `http://localhost:9090` |
+| Serviço | URL | Descrição |
+|---------|-----|-----------|
+| Auth Service | `http://localhost:3000/api/v1/auth` | Autenticação e autorização |
+| Students Service | `http://localhost:3001/api/v1/students` | Gestão de alunos |
+| Rooms Service | `http://localhost:3002/api/v1/rooms` | Gestão de salas |
+| Check-in Service | `http://localhost:3003/api/v1/checkin` | Check-in/check-out |
+| Analytics Service | `http://localhost:3004/api/v1/analytics` | Análise e relatórios |
+| Frontend Admin | `http://localhost:5173` | Interface administrativa |
+| Frontend Student | `http://localhost:5174` | Interface do estudante |
+| Grafana | `http://localhost:3005` (admin/admin) | Dashboards e métricas |
+| Prometheus | `http://localhost:9090` | Coleta de métricas |
 
 > **📘 Para produção:** Veja [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md)
+
+## 🧪 Teste do Zero (Simulando Avaliador)
+
+Para testar o projeto como se fosse a primeira vez (simulando um avaliador clonando o repo):
+
+### Opção 1: Script Automatizado (Recomendado)
+
+```bash
+# Limpa tudo e testa do zero
+npm run test:from-scratch
+```
+
+Este script:
+1. Limpa containers, volumes, node_modules, .env.local
+2. Instala dependências
+3. Configura variáveis de ambiente
+4. Sobe infraestrutura
+5. Executa migrations e seeds
+6. Verifica saúde dos serviços
+
+### Opção 2: Limpeza Manual
+
+```bash
+# Apenas limpar (sem testar)
+npm run clean:all
+
+# Depois seguir os passos do README normalmente
+npm install
+npm run setup:env
+npm run docker:up
+npm run seed:all
+npm run dev
+```
+
+### Guia Completo
+
+Para um guia detalhado de teste do zero, consulte:
+- [Guia de Teste para Avaliador](./docs_ia/GUIA_TESTE_AVALIADOR.md)
+
+---
+
+## ⚠️ Ressalvas e Limitações do Projeto
+
+### Contexto de Desenvolvimento
+
+Este projeto foi desenvolvido como **case técnico** para processo seletivo, com foco em demonstrar:
+- Conhecimento de arquitetura de microsserviços
+- Implementação de DDD e Hexagonal Architecture
+- Boas práticas de desenvolvimento
+- Observabilidade e monitoramento
+- Tratamento de concorrência e race conditions
+
+### Limitações Conhecidas
+
+1. **Ambiente de Desenvolvimento Local**
+   - Configurado para desenvolvimento local com Docker Compose
+   - Não inclui configuração completa para produção (Kubernetes, etc.)
+   - API Gateway (Traefik) documentado mas não implementado para desenvolvimento local
+
+2. **Autenticação e Segurança**
+   - JWT implementado, mas sem refresh token automático no frontend
+   - Sem rate limiting implementado
+   - Sem validação de CSRF tokens
+   - Senhas armazenadas com hash, mas sem política de complexidade forçada
+
+3. **Testes**
+   - Cobertura de testes não completa (alguns serviços têm mais testes que outros)
+   - Testes E2E do frontend podem falhar intermitentemente
+   - Testes de performance disponíveis mas não executados automaticamente
+
+4. **Frontend**
+   - Interface funcional mas pode ter melhorias de UX
+   - Alguns componentes podem não estar totalmente responsivos
+   - Tratamento de erros pode ser melhorado em alguns fluxos
+
+5. **Observabilidade**
+   - Prometheus e Grafana configurados, mas alertas não implementados
+   - Logs estruturados implementados, mas sem centralização (ELK, etc.)
+
+6. **Performance**
+   - Otimizado para desenvolvimento local
+   - Não testado com carga real de produção
+   - Cache Redis implementado mas pode ser expandido
+
+7. **Documentação**
+   - Documentação extensa, mas alguns detalhes podem estar desatualizados
+   - Alguns diagramas podem não refletir a implementação final
+
+### O que Funciona Bem
+
+✅ **Arquitetura:**
+- Microsserviços bem separados e independentes
+- DDD e Hexagonal Architecture implementados corretamente
+- Database per service funcionando
+
+✅ **Funcionalidades Core:**
+- CRUD de alunos e salas funcionando
+- Check-in/check-out implementado e testado
+- Validação de capacidade funcionando
+- Proteções contra race conditions implementadas
+
+✅ **Observabilidade:**
+- Métricas de negócio coletadas
+- Dashboards Grafana funcionando
+- Prometheus coletando métricas HTTP e de sistema
+
+✅ **Documentação:**
+- Swagger em todos os serviços
+- Documentação técnica extensa
+- Guias de demonstração e troubleshooting
+
+### Recomendações para Produção
+
+Se este projeto fosse para produção, seria necessário:
+
+1. **Infraestrutura:**
+   - Configurar Kubernetes ou ECS
+   - Implementar API Gateway (Traefik ou AWS API Gateway)
+   - Configurar load balancers
+   - Implementar service mesh (se necessário)
+
+2. **Segurança:**
+   - Implementar rate limiting
+   - Adicionar WAF (Web Application Firewall)
+   - Configurar HTTPS/TLS
+   - Implementar políticas de senha mais rigorosas
+   - Adicionar validação de CSRF
+
+3. **Observabilidade:**
+   - Centralizar logs (ELK, CloudWatch, etc.)
+   - Implementar alertas
+   - Adicionar tracing distribuído (Jaeger, etc.)
+   - Configurar health checks mais robustos
+
+4. **Testes:**
+   - Aumentar cobertura de testes
+   - Implementar testes de carga contínuos
+   - Adicionar testes de segurança
+   - Implementar testes de integração mais abrangentes
+
+5. **Performance:**
+   - Otimizar queries de banco de dados
+   - Implementar cache mais agressivo
+   - Configurar CDN para frontend
+   - Implementar paginação em todas as listagens
+
+---
 
 ## 🔧 Troubleshooting
 
