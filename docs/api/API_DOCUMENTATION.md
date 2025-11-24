@@ -16,7 +16,8 @@ Documentação consolidada de todas as APIs do sistema.
 
 ### Base URL
 - Local: `http://localhost:3000`
-- Via Traefik: `http://api.localhost`
+
+> **Nota:** Para produção com API Gateway, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ### Endpoints
 

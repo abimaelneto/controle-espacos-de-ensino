@@ -9,7 +9,7 @@ Este documento fornece um roteiro completo para demonstrar o projeto, requisito 
 - ✅ **Requisitos Obrigatórios**: 100% concluídos
 - ✅ **Funcionalidades Principais**: 100% concluídas
 - ✅ **Arquitetura**: 100% implementada
-- ✅ **Infraestrutura**: 100% implementada (Docker, Kubernetes completo com MySQL/Kafka/Redis, Terraform)
+- ✅ **Infraestrutura**: 100% implementada (Docker Compose com MySQL/Kafka/Redis, Prometheus, Grafana)
 - ✅ **Observabilidade**: 100% implementada
 - ✅ **Testes**: ~95% (303+ testes: 253 backend + 50+ E2E frontend)
 - ⚠️ **Relatórios Detalhados**: Pendente (exportação PDF/Excel)
@@ -21,8 +21,8 @@ Este documento fornece um roteiro completo para demonstrar o projeto, requisito 
 1. **Docker Desktop** rodando
 2. **Node.js 20+** instalado
 3. **npm** instalado
-4. (Opcional) **kind** e **kubectl** para Kubernetes local
-5. (Opcional) **Terraform** e **AWS CLI** para infraestrutura AWS
+
+> **Nota:** Para deploy em produção, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ### Passo 1: Infraestrutura Base
 
@@ -44,32 +44,9 @@ npm run docker:logs
 - Kafka: port 9092
 - Redis: port 6379
 - Prometheus: http://localhost:9090
-- Grafana: http://localhost:3001 (admin/admin)
-- Traefik: http://localhost:8080 (dashboard)
+- Grafana: http://localhost:3005 (admin/admin)
 
-#### Opção B: Kubernetes Local (kind) - **COMPLETO COM INFRAESTRUTURA**
-
-```bash
-# Setup completo automatizado (inclui MySQL, Kafka, Redis, Zookeeper)
-npm run k8s:setup
-
-# Ou passo a passo:
-npm run k8s:build-images
-npm run k8s:apply
-npm run k8s:test  # Testa todos os componentes
-```
-
-**Componentes incluídos:**
-- ✅ MySQL (5 instâncias: auth, students, spaces, checkin, analytics)
-- ✅ Kafka + Zookeeper
-- ✅ Redis
-- ✅ Todos os 5 microservices
-- ✅ NGINX Ingress
-
-**Acesso:**
-- API Gateway: http://api.localhost
-- Verificar status: `kubectl get pods -n controle-espacos`
-- Testar: `npm run k8s:test`
+> **Nota:** Para deploy em produção com Kubernetes, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ### Passo 2: Iniciar Serviços Backend
 
@@ -378,33 +355,14 @@ tree src/
 ```bash
 # Verificar Dockerfiles
 ls services/*/Dockerfile
-```
 
-2. **Kubernetes:**
-```bash
-# Verificar manifests
-ls infrastructure/kubernetes/deployments/
-ls infrastructure/kubernetes/services/
-
-# Aplicar no cluster local
-npm run k8s:apply
-```
-
-3. **Terraform:**
-```bash
-# Verificar módulos
-ls infrastructure/terraform/modules/
-
-# Inicializar Terraform
-cd infrastructure/terraform/environments/cloud
-terraform init
-terraform plan
+# Verificar Docker Compose
+cat docker-compose.yml
 ```
 
 **Validação:**
 - ✅ Dockerfiles multi-stage
-- ✅ Manifests Kubernetes completos
-- ✅ Módulos Terraform reutilizáveis
+- ✅ Docker Compose configurado
 - ✅ Scripts de automação
 
 ### Passo 5: Testes Automatizados
@@ -447,7 +405,7 @@ cd services/analytics-service && npm test
 
 ## 📋 Checklist de Demonstração
 
-- [ ] Infraestrutura rodando (Docker/Kubernetes)
+- [ ] Infraestrutura rodando (Docker Compose)
 - [ ] Todos os serviços backend iniciados
 - [ ] Frontend admin acessível
 - [ ] CRUD de Alunos funcionando
@@ -464,11 +422,11 @@ cd services/analytics-service && npm test
 1. **Arquitetura Limpa**: DDD + Hexagonal em todos os serviços
 2. **Testabilidade**: 303+ testes (253 backend + 50+ E2E frontend)
 3. **Observabilidade**: Métricas de negócio + dashboards em tempo real
-4. **Infraestrutura Completa**: Docker, Kubernetes (com MySQL/Kafka/Redis), Terraform AWS
-5. **Event-Driven**: Kafka para comunicação assíncrona (funcional no K8s)
-6. **API Gateway**: Traefik para roteamento
-7. **Performance**: Stress tests com monitoramento em tempo real (mock e real)
-8. **Kubernetes Completo**: Infraestrutura completa rodando no K8s
+4. **Infraestrutura Completa**: Docker Compose (MySQL, Kafka, Redis, Prometheus, Grafana)
+5. **Event-Driven**: Kafka para comunicação assíncrona
+6. **Performance**: Stress tests com monitoramento em tempo real
+7. **Cache e Locks**: Redis para locks distribuídos e idempotência
+8. **Proposta de Produção**: Documentação completa de deploy em produção disponível
 
 ## ⚠️ Pendências (2% restante)
 
@@ -477,9 +435,8 @@ cd services/analytics-service && npm test
 
 ## 📚 Documentação Adicional
 
-- [Status dos Requisitos](./REQUIREMENTS_STATUS.md)
-- [Infraestrutura Kubernetes](./INFRASTRUCTURE_KUBERNETES.md)
-- [Infraestrutura Terraform](./INFRASTRUCTURE_TERRAFORM.md)
-- [Observabilidade](./OBSERVABILITY_COMPLETE.md)
-- [Testes de Performance](./PERFORMANCE_TESTS.md)
+- [Status dos Requisitos](../REQUIREMENTS_STATUS.md)
+- [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
+- [Observabilidade](../observability/OBSERVABILITY_COMPLETE.md)
+- [Testes de Performance](../testing/PERFORMANCE_TESTS.md)
 

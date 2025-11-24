@@ -26,11 +26,10 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - 5 serviços: Auth, Students, Rooms, Check-in, Analytics
 - Frontend Admin e Student
 - Observabilidade completa (Prometheus + Grafana)
-- Testes E2E com Playwright
+- Testes E2E com Playwright (migrado para Cypress)
 - Testes de performance com Artillery
-- Infraestrutura Kubernetes (Kind)
-- Terraform para AWS
-- Traefik API Gateway
+- Docker Compose para infraestrutura local
+- Proposta de deploy em produção (Kubernetes, Terraform, API Gateway)
 - Proteções contra race conditions
 - Distributed locks (Redis)
 - Idempotency keys
@@ -43,16 +42,15 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 - Arquitetura Hexagonal (Ports and Adapters)
 - Event-Driven Architecture (Kafka)
 - Database per Service
-- API Gateway (Traefik)
+- Proposta de API Gateway para produção
 
 ### Infraestrutura
-- Docker Compose para desenvolvimento
-- Kubernetes local (Kind)
-- Terraform para AWS (VPC, RDS, ECS, EKS)
+- Docker Compose para desenvolvimento local
 - Prometheus para métricas
 - Grafana para visualização
-- Redis para cache e locks
+- Redis para cache e locks distribuídos
 - Kafka para mensageria
+- Proposta de deploy em produção (Kubernetes, Terraform, AWS)
 
 ### Testes
 - ~250 testes unitários

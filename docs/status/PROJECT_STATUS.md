@@ -242,10 +242,9 @@ Este documento apresenta o status final do projeto, confirmando que todos os req
    - Diferenciação por tipo
 
 4. **Infraestrutura Avançada**
-   - Kubernetes (Kind)
-   - Docker Compose
-   - Terraform
+   - Docker Compose (MySQL, Kafka, Redis, Prometheus, Grafana)
    - Observabilidade (Prometheus + Grafana)
+   - Proposta de deploy em produção disponível
 
 5. **Testes Completos**
    - Testes unitários
@@ -268,8 +267,8 @@ Este documento apresenta o status final do projeto, confirmando que todos os req
 - [x] ✅ Sistema funcional e testado
 - [x] ✅ Arquitetura sólida e escalável
 - [x] ✅ Observabilidade implementada
-- [x] ✅ Infraestrutura como código (Terraform)
-- [x] ✅ Kubernetes configurado
+- [x] ✅ Docker Compose configurado
+- [x] ✅ Proposta de deploy em produção documentada
 
 ---
 
@@ -285,7 +284,7 @@ O projeto atende e supera todos os requisitos obrigatórios do case técnico. Al
 - ✅ Documentação completa
 - ✅ Testes abrangentes
 - ✅ Funcionalidades criativas e úteis
-- ✅ Pronto para produção (Kubernetes, Observabilidade, IaC)
+- ✅ Pronto para produção (Docker Compose, Observabilidade, Proposta de deploy documentada)
 
 **O projeto está PRONTO para entrega e demonstração!** 🎉
 

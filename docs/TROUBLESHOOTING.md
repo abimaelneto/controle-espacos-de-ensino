@@ -209,21 +209,9 @@ app.enableCors({
 echo $FRONTEND_URL
 ```
 
-### Traefik não roteia
+### API Gateway (Proposta)
 
-**Sintoma**: `404 Not Found` via Traefik
-
-**Solução**:
-```bash
-# Verificar rotas no Traefik
-curl http://traefik.localhost:8080/api/http/routers
-
-# Verificar logs
-docker logs traefik
-
-# Verificar configuração
-cat infrastructure/docker/traefik/routes.yml
-```
+> **Nota:** Traefik não está sendo usado atualmente. Para configuração de API Gateway em produção, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ### Timeout em requisições
 
@@ -368,22 +356,9 @@ docker build --progress=plain -t auth-service .
 docker build -f services/auth-service/Dockerfile .
 ```
 
-### Kubernetes pods não iniciam
+### Kubernetes (Proposta)
 
-**Sintoma**: Pods ficam em `CrashLoopBackOff`
-
-**Solução**:
-```bash
-# Ver logs
-kubectl logs <pod-name> -n controle-espacos
-
-# Ver eventos
-kubectl describe pod <pod-name> -n controle-espacos
-
-# Verificar configuração
-kubectl get configmap -n controle-espacos
-kubectl get secret -n controle-espacos
-```
+> **Nota:** Kubernetes não está sendo usado atualmente. Para troubleshooting de Kubernetes em produção, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ## 🔍 Debugging
 

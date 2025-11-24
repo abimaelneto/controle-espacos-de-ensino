@@ -80,7 +80,6 @@ Isso inicia:
 - Kafka + Zookeeper
 - Prometheus
 - Grafana
-- Traefik
 
 ### 5. Execute Migrations
 
@@ -127,8 +126,7 @@ controle-espacos-de-ensino/
 │   └── student/                # Frontend Student
 ├── infrastructure/
 │   ├── docker/                 # Docker Compose, configs
-│   ├── kubernetes/             # K8s manifests
-│   └── terraform/              # IaC AWS
+│   └── kubernetes/             # K8s manifests (proposta)
 ├── tests/
 │   └── performance/            # Testes de performance
 ├── scripts/                     # Scripts utilitários
@@ -167,18 +165,10 @@ npm run dev:frontend
 - **Check-in Service**: http://localhost:3003
 - **Analytics Service**: http://localhost:3004
 - **Frontend Admin**: http://localhost:5173
-- **Grafana**: http://localhost:3001 (admin/admin)
+- **Grafana**: http://localhost:3005 (admin/admin)
 - **Prometheus**: http://localhost:9090
-- **Traefik Dashboard**: http://traefik.localhost:8080
 
-### Via Traefik (API Gateway)
-
-Todos os serviços podem ser acessados via:
-- `http://api.localhost/api/v1/auth/*`
-- `http://api.localhost/api/v1/students/*`
-- `http://api.localhost/api/v1/rooms/*`
-- `http://api.localhost/api/v1/checkin/*`
-- `http://api.localhost/api/v1/analytics/*`
+> **Nota:** Para produção com API Gateway, veja [Proposta de Deploy para Produção](../deployment/PRODUCTION_DEPLOYMENT.md)
 
 ## 📝 Padrões de Código
 

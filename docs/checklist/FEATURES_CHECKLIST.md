@@ -258,8 +258,8 @@
    - ✅ 100% de cobertura dos requisitos
 
 6. **Infraestrutura Avançada**
-   - ✅ Kubernetes (Kind)
-   - ✅ Docker Compose
+   - ✅ Docker Compose (MySQL, Kafka, Redis, Prometheus, Grafana)
+   - ✅ Proposta de deploy em produção documentada
    - ✅ Terraform (IaC)
    - ✅ Observabilidade completa
 
