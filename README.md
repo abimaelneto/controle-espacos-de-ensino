@@ -4,9 +4,9 @@ Sistema para controle de uso de espaços de ensino com análise de taxa de ocupa
 
 > **🚀 Quick Start (Desenvolvimento Local):** 
 > ```bash
-> npm install && npm run docker:up && npm run seed:all && npm run dev
+> npm install && npm run setup:env && npm run docker:up && npm run seed:all && npm run dev
 > ```
-> Isso inicia toda a infraestrutura e serviços localmente!
+> Isso configura o ambiente, inicia a infraestrutura e serviços localmente!
 
 ## 📋 Sobre o Projeto
 
@@ -56,9 +56,19 @@ Desenvolver uma aplicação web para controlar o uso de espaços de ensino, perm
 
 ### Pré-requisitos
 
-- Node.js 20 LTS ou superior
-- Docker e Docker Compose
-- npm ou yarn
+**Obrigatórios:**
+- **Docker** e **Docker Compose** (versão 2.x ou superior)
+- **Node.js** 20 LTS ou superior (com npm 9.x ou superior)
+
+**Verificação rápida:**
+```bash
+docker --version        # Deve mostrar Docker 24.x ou superior
+docker-compose --version # Deve mostrar Docker Compose 2.x ou superior
+node --version          # Deve mostrar v20.x ou superior
+npm --version           # Deve mostrar 9.x ou superior
+```
+
+> **💡 Nota:** Com Docker instalado, você pode rodar toda a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana) sem precisar instalar nada adicional. Os serviços Node.js rodam localmente, mas toda a infraestrutura está containerizada.
 
 ### Como Começar (Desenvolvimento Local)
 
@@ -68,13 +78,16 @@ git clone <repository-url>
 cd controle-espacos-de-ensino
 npm install
 
-# 2. Suba a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
+# 2. Configure variáveis de ambiente (cria .env.local a partir dos env.example)
+npm run setup:env
+
+# 3. Suba a infraestrutura (MySQL, Kafka, Redis, Prometheus, Grafana)
 npm run docker:up
 
-# 3. Execute migrations e seeds
+# 4. Execute migrations e seeds
 npm run seed:all
 
-# 4. Inicie todos os serviços
+# 5. Inicie todos os serviços
 npm run dev
 ```
 
@@ -86,8 +99,21 @@ npm run dev
 - Analytics Service: `http://localhost:3004/api/v1/analytics`
 - Frontend Admin: `http://localhost:5173`
 - Frontend Student: `http://localhost:5174`
-- Grafana: `http://localhost:3001` (admin/admin)
+- Grafana: `http://localhost:3005` (admin/admin)
 - Prometheus: `http://localhost:9090`
+
+**Verificação rápida:**
+```bash
+# Verificar se os containers estão rodando
+npm run docker:ps
+
+# Verificar saúde dos serviços (após npm run dev)
+curl http://localhost:3000/health  # Auth
+curl http://localhost:3001/health   # Students
+curl http://localhost:3002/health   # Rooms
+curl http://localhost:3003/health   # Check-in
+curl http://localhost:3004/health   # Analytics
+```
 
 **Alternativa:** Rodar serviços individuais:
 ```bash
@@ -185,7 +211,8 @@ controle-espacos-de-ensino/
 - `npm run dev:analytics` - Inicia apenas Analytics Service
 - `npm run dev:frontend` - Inicia apenas Frontend Admin
 
-### Seeds e Migrations
+### Setup e Configuração
+- `npm run setup:env` - **Cria arquivos .env.local a partir dos env.example** (execute após clonar)
 - `npm run seed:all` - **Executa todas as migrations e seeds** (recomendado)
 - `npm run seed:observability` - Seed apenas para observabilidade
 - `perf:seed` - Seed apenas para testes de performance
@@ -216,10 +243,69 @@ controle-espacos-de-ensino/
 | Analytics Service | `http://localhost:3004/api/v1/analytics` |
 | Frontend Admin | `http://localhost:5173` |
 | Frontend Student | `http://localhost:5174` |
-| Grafana | `http://localhost:3001` (admin/admin) |
+| Grafana | `http://localhost:3005` (admin/admin) |
 | Prometheus | `http://localhost:9090` |
 
 > **📘 Para produção:** Veja [Proposta de Deploy para Produção](./docs/deployment/PRODUCTION_DEPLOYMENT.md)
+
+## 🔧 Troubleshooting
+
+### Problemas Comuns
+
+**1. Erro ao executar `npm install`:**
+```bash
+# Limpar cache e reinstalar
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+```
+
+**2. Containers não iniciam:**
+```bash
+# Verificar se Docker está rodando
+docker ps
+
+# Ver logs dos containers
+npm run docker:logs
+
+# Parar e reiniciar
+npm run docker:down
+npm run docker:up
+```
+
+**3. Erro de conexão com banco de dados:**
+```bash
+# Verificar se os containers MySQL estão rodando
+npm run docker:ps
+
+# Aguardar alguns segundos após subir os containers (MySQL precisa de tempo para inicializar)
+# Depois executar migrations novamente
+npm run seed:all
+```
+
+**4. Porta já em uso:**
+```bash
+# Verificar qual processo está usando a porta
+lsof -i :3000  # Para porta 3000, ajuste conforme necessário
+
+# Parar o processo ou alterar a porta no .env.local do serviço
+```
+
+**5. Arquivos .env.local não encontrados:**
+```bash
+# Executar o script de setup
+npm run setup:env
+```
+
+**6. Migrations falham:**
+```bash
+# Verificar se os bancos de dados estão acessíveis
+# Aguardar alguns segundos após subir os containers
+# Executar migrations novamente
+npm run seed:all
+```
+
+Para mais detalhes, consulte [Troubleshooting](./docs/TROUBLESHOOTING.md).
 
 ## 📝 Licença
 
