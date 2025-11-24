@@ -4,6 +4,7 @@ const STUDENTS_API_URL = import.meta.env.VITE_STUDENTS_API_URL || 'http://localh
 
 const studentsApi = axios.create({
   baseURL: STUDENTS_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

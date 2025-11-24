@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
+import { Module, Scope } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule, HttpService } from '@nestjs/axios';
 import { JwtModule } from '@nestjs/jwt';
+import { REQUEST } from '@nestjs/core';
 import { getDatabaseConfig } from './infrastructure/config/database.config';
 import { JwtAuthGuard } from './presentation/http/guards/jwt-auth.guard';
 import { RolesGuard } from './presentation/http/guards/roles.guard';
@@ -80,26 +81,30 @@ const shouldUseMockClients = (config: ConfigService) =>
       useFactory: (
         httpService: HttpService,
         configService: ConfigService,
+        request: any,
       ) => {
         if (shouldUseMockClients(configService)) {
           return new MockStudentsClientAdapter();
         }
-        return new StudentsClientAdapter(httpService, configService);
+        return new StudentsClientAdapter(httpService, configService, request);
       },
-      inject: [HttpService, ConfigService],
+      inject: [HttpService, ConfigService, REQUEST],
+      scope: Scope.REQUEST,
     },
     {
       provide: ROOMS_CLIENT,
       useFactory: (
         httpService: HttpService,
         configService: ConfigService,
+        request: any,
       ) => {
         if (shouldUseMockClients(configService)) {
           return new MockRoomsClientAdapter();
         }
-        return new RoomsClientAdapter(httpService, configService);
+        return new RoomsClientAdapter(httpService, configService, request);
       },
-      inject: [HttpService, ConfigService],
+      inject: [HttpService, ConfigService, REQUEST],
+      scope: Scope.REQUEST,
     },
     {
       provide: EVENT_PUBLISHER,

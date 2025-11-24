@@ -13,6 +13,7 @@ import { UpdateStudentUseCase } from './application/use-cases/update-student.use
 import { DeleteStudentUseCase } from './application/use-cases/delete-student.use-case';
 import { FindStudentByCPFUseCase } from './application/use-cases/find-student-by-cpf.use-case';
 import { FindStudentByMatriculaUseCase } from './application/use-cases/find-student-by-matricula.use-case';
+import { FindStudentByUserIdUseCase } from './application/use-cases/find-student-by-user-id.use-case';
 import { StudentValidationService } from './domain/services/student-validation.service';
 import { MySQLStudentRepositoryAdapter } from './infrastructure/adapters/persistence/mysql/mysql-student.repository.adapter';
 import { StudentEntity } from './infrastructure/adapters/persistence/mysql/student.entity';
@@ -43,12 +44,15 @@ const isTrue = (value?: string | null) =>
     TypeOrmModule.forFeature([StudentEntity]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
-      useFactory: (config: ConfigService) => ({
-        secret: config.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: config.get<string>('JWT_EXPIRES_IN', '1h'),
-        },
-      }),
+      useFactory: (config: ConfigService) => {
+        const expiresIn = config.get<string>('JWT_EXPIRES_IN', '1h');
+        return {
+          secret: config.get<string>('JWT_SECRET'),
+          signOptions: {
+            expiresIn: expiresIn as any, // StringValue type from jsonwebtoken
+          },
+        };
+      },
       inject: [ConfigService],
     }),
   ],
@@ -145,6 +149,13 @@ const isTrue = (value?: string | null) =>
       provide: FindStudentByMatriculaUseCase,
       useFactory: (repository: IStudentRepository) => {
         return new FindStudentByMatriculaUseCase(repository);
+      },
+      inject: [STUDENT_REPOSITORY],
+    },
+    {
+      provide: FindStudentByUserIdUseCase,
+      useFactory: (repository: IStudentRepository) => {
+        return new FindStudentByUserIdUseCase(repository);
       },
       inject: [STUDENT_REPOSITORY],
     },

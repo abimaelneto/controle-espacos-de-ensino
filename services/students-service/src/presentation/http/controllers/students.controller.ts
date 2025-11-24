@@ -21,14 +21,13 @@ import { UpdateStudentUseCase } from '../../../application/use-cases/update-stud
 import { DeleteStudentUseCase } from '../../../application/use-cases/delete-student.use-case';
 import { FindStudentByCPFUseCase } from '../../../application/use-cases/find-student-by-cpf.use-case';
 import { FindStudentByMatriculaUseCase } from '../../../application/use-cases/find-student-by-matricula.use-case';
+import { FindStudentByUserIdUseCase } from '../../../application/use-cases/find-student-by-user-id.use-case';
 import { CreateStudentDto } from '../../../application/dto/create-student.dto';
 import { UpdateStudentDto } from '../../../application/dto/update-student.dto';
 import { Student } from '../../../domain/entities/student.entity';
 
 @ApiTags('students')
-@ApiBearerAuth()
 @Controller('students')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class StudentsController {
   constructor(
     private readonly createStudentUseCase: CreateStudentUseCase,
@@ -38,10 +37,13 @@ export class StudentsController {
     private readonly deleteStudentUseCase: DeleteStudentUseCase,
     private readonly findStudentByCPFUseCase: FindStudentByCPFUseCase,
     private readonly findStudentByMatriculaUseCase: FindStudentByMatriculaUseCase,
+    private readonly findStudentByUserIdUseCase: FindStudentByUserIdUseCase,
   ) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Criar novo aluno' })
   @ApiResponse({ status: 201, description: 'Aluno criado com sucesso' })
   @ApiResponse({ status: 400, description: 'Dados inválidos' })
@@ -70,7 +72,9 @@ export class StudentsController {
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'MONITOR')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Listar todos os alunos' })
   @ApiResponse({ status: 200, description: 'Lista de alunos' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
@@ -91,8 +95,83 @@ export class StudentsController {
     }));
   }
 
+  // Rotas específicas DEVEM vir antes da rota genérica :id
+  @Get('cpf/:cpf')
+  @ApiOperation({ summary: 'Buscar aluno por CPF' })
+  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
+  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  async findByCPF(@Param('cpf') cpf: string) {
+    const student = await this.findStudentByCPFUseCase.execute(cpf);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      name: `${student.getName().getFirstName()} ${student.getName().getLastName()}`,
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    };
+  }
+
+  @Get('matricula/:matricula')
+  @ApiOperation({ summary: 'Buscar aluno por Matrícula' })
+  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
+  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  async findByMatricula(@Param('matricula') matricula: string) {
+    const student = await this.findStudentByMatriculaUseCase.execute(matricula);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      name: `${student.getName().getFirstName()} ${student.getName().getLastName()}`,
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    };
+  }
+
+  @Get('user/:userId')
+  @ApiOperation({ summary: 'Buscar aluno por User ID' })
+  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
+  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
+  async findByUserId(@Param('userId') userId: string) {
+    const student = await this.findStudentByUserIdUseCase.execute(userId);
+    if (!student) {
+      return null;
+    }
+    return {
+      id: student.getId(),
+      userId: student.getUserId(),
+      name: `${student.getName().getFirstName()} ${student.getName().getLastName()}`,
+      firstName: student.getName().getFirstName(),
+      lastName: student.getName().getLastName(),
+      cpf: student.getCPF().toString(),
+      email: student.getEmail().toString(),
+      matricula: student.getMatricula().toString(),
+      status: student.getStatus(),
+      createdAt: student.getCreatedAt(),
+      updatedAt: student.getUpdatedAt(),
+    };
+  }
+
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN', 'MONITOR', 'STUDENT')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Buscar aluno por ID' })
   @ApiResponse({ status: 200, description: 'Aluno encontrado' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
@@ -118,7 +197,9 @@ export class StudentsController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Atualizar aluno' })
   @ApiResponse({ status: 200, description: 'Aluno atualizado com sucesso' })
   @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
@@ -145,7 +226,9 @@ export class StudentsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
+  @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Deletar aluno (soft delete)' })
   @ApiResponse({ status: 204, description: 'Aluno deletado com sucesso' })
@@ -156,56 +239,5 @@ export class StudentsController {
     return this.deleteStudentUseCase.execute(id);
   }
 
-  @Get('cpf/:cpf')
-  @Roles('ADMIN', 'MONITOR')
-  @ApiOperation({ summary: 'Buscar aluno por CPF' })
-  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
-  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  @ApiResponse({ status: 403, description: 'Acesso negado' })
-  async findByCPF(@Param('cpf') cpf: string) {
-    const student = await this.findStudentByCPFUseCase.execute(cpf);
-    if (!student) {
-      return null;
-    }
-    return {
-      id: student.getId(),
-      userId: student.getUserId(),
-      firstName: student.getName().getFirstName(),
-      lastName: student.getName().getLastName(),
-      cpf: student.getCPF().toString(),
-      email: student.getEmail().toString(),
-      matricula: student.getMatricula().toString(),
-      status: student.getStatus(),
-      createdAt: student.getCreatedAt(),
-      updatedAt: student.getUpdatedAt(),
-    };
-  }
-
-  @Get('matricula/:matricula')
-  @Roles('ADMIN', 'MONITOR')
-  @ApiOperation({ summary: 'Buscar aluno por Matrícula' })
-  @ApiResponse({ status: 200, description: 'Aluno encontrado' })
-  @ApiResponse({ status: 404, description: 'Aluno não encontrado' })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  @ApiResponse({ status: 403, description: 'Acesso negado' })
-  async findByMatricula(@Param('matricula') matricula: string) {
-    const student = await this.findStudentByMatriculaUseCase.execute(matricula);
-    if (!student) {
-      return null;
-    }
-    return {
-      id: student.getId(),
-      userId: student.getUserId(),
-      firstName: student.getName().getFirstName(),
-      lastName: student.getName().getLastName(),
-      cpf: student.getCPF().toString(),
-      email: student.getEmail().toString(),
-      matricula: student.getMatricula().toString(),
-      status: student.getStatus(),
-      createdAt: student.getCreatedAt(),
-      updatedAt: student.getUpdatedAt(),
-    };
-  }
 }
 

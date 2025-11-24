@@ -4,6 +4,7 @@
 export interface IStudentsClient {
   findStudentByCPF(cpf: string): Promise<StudentInfo | null>;
   findStudentByMatricula(matricula: string): Promise<StudentInfo | null>;
+  findStudentByUserId(userId: string): Promise<StudentInfo | null>;
   validateStudentActive(studentId: string): Promise<boolean>;
 }
 

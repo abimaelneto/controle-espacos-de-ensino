@@ -68,15 +68,30 @@ export class PerformCheckInUseCase {
       };
     }
 
-    // Resolver studentId a partir do método de identificação
+    // Resolver studentId a partir do userId (se disponível) ou método de identificação
     let studentId = dto.studentId;
 
-    if (!studentId && dto.identificationMethod && dto.identificationValue) {
-      studentId =
-        (await this.resolveStudentIdUseCase.execute(
-          dto.identificationMethod,
-          dto.identificationValue,
-        )) || '';
+    if (!studentId) {
+      // Tentar resolver por userId primeiro (do token JWT)
+      if (dto.userId) {
+        console.log(`[PerformCheckIn] Tentando resolver studentId por userId: ${dto.userId}`);
+        studentId =
+          (await this.resolveStudentIdUseCase.execute(
+            dto.identificationMethod || 'MATRICULA',
+            dto.identificationValue || '',
+            dto.userId,
+          )) || '';
+      }
+      
+      // Se ainda não tiver studentId, tentar por método de identificação
+      if (!studentId && dto.identificationMethod && dto.identificationValue) {
+        console.log(`[PerformCheckIn] Tentando resolver studentId por método de identificação: ${dto.identificationMethod}`);
+        studentId =
+          (await this.resolveStudentIdUseCase.execute(
+            dto.identificationMethod,
+            dto.identificationValue,
+          )) || '';
+      }
     }
 
     if (!studentId) {

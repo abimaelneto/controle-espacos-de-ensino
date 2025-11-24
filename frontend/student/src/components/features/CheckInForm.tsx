@@ -80,7 +80,7 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
     try {
       const response = await checkInService.performCheckOut({
         identificationMethod: method,
-        identificationValue: value,
+        identificationValue: value.trim(),
       });
 
       if (response.success) {
@@ -122,12 +122,12 @@ export default function CheckInForm({ roomId, roomNumber, onSuccess }: CheckInFo
       }
 
       const request: CheckInRequest = {
-        studentId: '', // Será resolvido no backend
+        // studentId será resolvido no backend a partir do identificationMethod e identificationValue
         roomId,
         identificationMethod: method,
-        identificationValue: value,
+        identificationValue: value.trim(),
       };
-
+      console.log(request)
       const response = await checkInService.performCheckIn(request);
 
       if (response.success) {

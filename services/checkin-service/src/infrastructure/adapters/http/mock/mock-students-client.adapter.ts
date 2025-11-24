@@ -34,6 +34,13 @@ export class MockStudentsClientAdapter implements IStudentsClient {
     return this.buildStudent(`stress-student-mat-${sanitizeDigits(matricula)}`);
   }
 
+  async findStudentByUserId(userId: string): Promise<StudentInfo | null> {
+    if (!userId) {
+      return null;
+    }
+    return this.buildStudent(`stress-student-user-${sanitizeDigits(userId)}`);
+  }
+
   async validateStudentActive(studentId: string): Promise<boolean> {
     return !!studentId;
   }

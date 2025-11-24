@@ -4,6 +4,7 @@ const ROOMS_API_URL = import.meta.env.VITE_ROOMS_API_URL || 'http://localhost:30
 
 const roomsApi = axios.create({
   baseURL: ROOMS_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

@@ -28,6 +28,7 @@ describe('CheckInValidationService', () => {
     studentsClient = {
       findStudentByCPF: jest.fn(),
       findStudentByMatricula: jest.fn(),
+      findStudentByUserId: jest.fn(),
       validateStudentActive: jest.fn(),
     };
 

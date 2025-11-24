@@ -17,6 +17,15 @@ export class PerformCheckInDto {
   studentId?: string;
 
   @ApiProperty({
+    example: 'user-123',
+    description: 'ID do usuário (será usado para buscar studentId se não fornecido)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  userId?: string;
+
+  @ApiProperty({
     example: 'room-456',
     description: 'ID da sala',
   })

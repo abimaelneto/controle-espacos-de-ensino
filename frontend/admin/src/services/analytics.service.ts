@@ -5,6 +5,7 @@ const ANALYTICS_API_URL = import.meta.env.VITE_ANALYTICS_API_URL || 'http://loca
 
 const analyticsApi = axios.create({
   baseURL: ANALYTICS_API_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },

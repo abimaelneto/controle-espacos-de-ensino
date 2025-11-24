@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000
 
 const authApi = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -38,8 +39,22 @@ export interface User {
 
 class AuthService {
   async login(credentials: LoginDto): Promise<AuthResponse> {
-    const response = await authApi.post<AuthResponse>('/auth/login', credentials);
-    return response.data;
+    try {
+      const response = await authApi.post<AuthResponse>('/auth/login', credentials);
+      return response.data;
+    } catch (error: any) {
+      // Log detalhado para debug
+      if (error.response) {
+        console.error('Login error:', {
+          status: error.response.status,
+          data: error.response.data,
+          url: error.config?.url,
+        });
+      } else {
+        console.error('Login error (network):', error.message);
+      }
+      throw error;
+    }
   }
 
   async register(data: RegisterDto): Promise<AuthResponse> {

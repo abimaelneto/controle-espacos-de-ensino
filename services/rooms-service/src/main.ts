@@ -9,22 +9,33 @@ import { RoomResponseInterceptor } from './presentation/http/interceptors/room-r
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // CORS - DEVE SER CONFIGURADO PRIMEIRO, ANTES DE QUALQUER MIDDLEWARE
+  // Permitir ambos os frontends (admin e student)
+  const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+  
+  console.log('🔒 CORS configurado para origins:', allowedOrigins);
+  
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Content-Range', 'X-Total-Count'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
+
   app.use(
     helmet({
       contentSecurityPolicy: false,
       crossOriginEmbedderPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
     }),
   );
 
   // Global prefix (excluir metrics do prefixo)
   app.setGlobalPrefix('api/v1', {
     exclude: ['/metrics'],
-  });
-
-  // CORS
-  app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-    credentials: true,
   });
 
   // Response interceptor para transformar Room entities

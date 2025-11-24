@@ -125,9 +125,16 @@ async function createAdminUser() {
     log(`✅ Admin criado e autenticado (ID: ${response.data.user.id})`, 'green');
     return response.data.user;
   } catch (error) {
-    if (error.response?.status === 409 || error.response?.status === 500) {
-      // Usuário já existe ou erro interno (pode ser que já exista), fazer login
-      log('⚠️  Admin pode já existir, tentando fazer login...', 'yellow');
+    const status = error.response?.status;
+    const errorMessage = error.response?.data?.message || '';
+    const isAlreadyExists = 
+      status === 400 && errorMessage.includes('already exists') ||
+      status === 409 ||
+      status === 500;
+    
+    if (isAlreadyExists) {
+      // Usuário já existe, fazer login
+      log('⚠️  Admin já existe, fazendo login...', 'yellow');
       try {
         const loginResponse = await axios.post(`${BASE_URL}/api/v1/auth/login`, {
           email: 'admin@observability.local',
@@ -194,8 +201,15 @@ async function createUsers(count = 50) {
           continue;
         }
       } catch (registerError) {
-        // Se erro 409 ou 500, tentar fazer login (usuário pode já existir)
-        if (registerError.response?.status === 409 || registerError.response?.status === 500) {
+        const status = registerError.response?.status;
+        const errorMessage = registerError.response?.data?.message || '';
+        const isAlreadyExists = 
+          status === 400 && errorMessage.includes('already exists') ||
+          status === 409 ||
+          status === 500;
+        
+        // Se usuário já existe, tentar fazer login para obter os dados
+        if (isAlreadyExists) {
           try {
             const loginResponse = await axios.post(`${BASE_URL}/api/v1/auth/login`, {
               email,
@@ -207,12 +221,16 @@ async function createUsers(count = 50) {
             });
             if (loginResponse.data?.user) {
               created.push(loginResponse.data.user);
+              // Não logar como erro, é esperado em re-execuções
               continue;
             }
           } catch (loginError) {
-            // Ignorar erro de login, continuar
+            // Se login falhar, o usuário existe mas senha pode estar errada
+            // Continuar sem adicionar à lista (usuário existe mas não podemos usar)
+            continue;
           }
         } else {
+          // Erro inesperado - mostrar detalhes
           log(`❌ Erro ao criar usuário ${i + 1}: ${registerError.message}`, 'red');
           if (registerError.response) {
             log(`   Status: ${registerError.response.status}`, 'red');
@@ -226,7 +244,11 @@ async function createUsers(count = 50) {
   }
   
   users.push(...created);
-  log(`✅ ${created.length} usuários criados`, 'green');
+  if (created.length < count) {
+    log(`⚠️  ${created.length}/${count} usuários disponíveis (alguns já existiam)`, 'yellow');
+  } else {
+    log(`✅ ${created.length} usuários criados`, 'green');
+  }
   return created;
 }
 
@@ -285,19 +307,25 @@ async function createStudents(userIds, count = 50) {
       
       if (response.status === 201 || response.status === 200) {
         created.push(response.data);
-      } else if (response.status === 409) {
-        // Duplicado, pular
+      } else if (response.status === 409 || (response.status === 400 && response.data?.message?.includes('already exists'))) {
+        // Duplicado, pular silenciosamente (é esperado em re-execuções)
         continue;
       } else {
         throw new Error(`Status ${response.status}: ${JSON.stringify(response.data)}`);
       }
     } catch (error) {
-      if (error.response?.status === 409) {
-        // Duplicado, pular
+      const status = error.response?.status;
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+      const isAlreadyExists = 
+        status === 409 || 
+        (status === 400 && errorMsg.includes('already exists'));
+      
+      if (isAlreadyExists) {
+        // Duplicado, pular silenciosamente (é esperado em re-execuções)
         continue;
       }
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
-      const errorCode = error.code || error.response?.status || 'N/A';
+      
+      const errorCode = error.code || status || 'N/A';
       log(`❌ Erro ao criar aluno ${i + 1}: ${errorMsg} (Code: ${errorCode})`, 'red');
       if (error.code === 'ECONNREFUSED' || error.message?.includes('ECONNREFUSED')) {
         log(`   ⚠️  Students Service não está rodando na porta 3001`, 'yellow');
@@ -325,7 +353,11 @@ async function createStudents(userIds, count = 50) {
   }
   
   students.push(...created);
-  log(`✅ ${created.length} alunos criados`, 'green');
+  if (created.length < count) {
+    log(`⚠️  ${created.length}/${count} alunos criados (alguns já existiam)`, 'yellow');
+  } else {
+    log(`✅ ${created.length} alunos criados`, 'green');
+  }
   return created;
 }
 
@@ -398,18 +430,24 @@ async function createRooms(count = 20) {
       
       if (response.status === 201 || response.status === 200) {
         created.push(response.data);
-      } else if (response.status === 409) {
-        // Duplicado, pular
+      } else if (response.status === 409 || (response.status === 400 && response.data?.message?.includes('already exists'))) {
+        // Duplicado, pular silenciosamente (é esperado em re-execuções)
         continue;
       } else {
         throw new Error(`Status ${response.status}: ${JSON.stringify(response.data)}`);
       }
     } catch (error) {
-      if (error.response?.status === 409) {
-        // Duplicado, pular
+      const status = error.response?.status;
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+      const isAlreadyExists = 
+        status === 409 || 
+        (status === 400 && errorMsg.includes('already exists'));
+      
+      if (isAlreadyExists) {
+        // Duplicado, pular silenciosamente (é esperado em re-execuções)
         continue;
       }
-      const errorMsg = error.response?.data?.message || error.response?.data?.error || error.message;
+      
       log(`❌ Erro ao criar sala ${i + 1}: ${errorMsg}`, 'red');
       if (error.response?.data) {
         log(`   Detalhes: ${JSON.stringify(error.response.data)}`, 'yellow');
@@ -438,7 +476,11 @@ async function createRooms(count = 20) {
   }
   
   rooms.push(...created);
-  log(`✅ ${created.length} salas criadas`, 'green');
+  if (created.length < count) {
+    log(`⚠️  ${created.length}/${count} salas criadas (algumas já existiam)`, 'yellow');
+  } else {
+    log(`✅ ${created.length} salas criadas`, 'green');
+  }
   return created;
 }
 
@@ -546,6 +588,7 @@ async function checkServices() {
  */
 async function main() {
   log('\n🚀 Iniciando seed de dados para observabilidade...\n', 'blue');
+  log('💡 Nota: Se os dados já existirem, o script tentará reutilizá-los.\n', 'yellow');
   
   try {
     // Verificar serviços
@@ -560,10 +603,11 @@ async function main() {
     const createdUsers = await createUsers(50);
     // Garantir que temos usuários válidos
     if (createdUsers.length === 0) {
-      log('⚠️  Nenhum usuário foi criado. Tentando criar usuários novamente...', 'yellow');
+      log('⚠️  Nenhum usuário disponível. Tentando criar usuários novamente...', 'yellow');
       const retryUsers = await createUsers(10); // Criar pelo menos 10
       if (retryUsers.length === 0) {
-        log('❌ Não foi possível criar usuários. Abortando criação de alunos.', 'red');
+        log('❌ Não foi possível obter usuários. Abortando criação de alunos.', 'red');
+        log('   💡 Dica: Limpe o banco de dados ou verifique se o Auth Service está funcionando.', 'yellow');
         return;
       }
       createdUsers.push(...retryUsers);
@@ -592,11 +636,16 @@ async function main() {
     log('');
     
     // Resumo
-    log('\n📊 Resumo:', 'blue');
-    log(`  • Usuários: ${users.length}`, 'green');
-    log(`  • Alunos: ${createdStudents.length}`, 'green');
-    log(`  • Salas: ${createdRooms.length}`, 'green');
+    log('\n📊 Resumo Final:', 'blue');
+    log(`  • Usuários disponíveis: ${users.length}`, users.length > 0 ? 'green' : 'yellow');
+    log(`  • Alunos criados: ${createdStudents.length}`, createdStudents.length > 0 ? 'green' : 'yellow');
+    log(`  • Salas criadas: ${createdRooms.length}`, createdRooms.length > 0 ? 'green' : 'yellow');
     log(`  • Check-ins: ~200 distribuídos`, 'green');
+    
+    if (createdUsers.length < 50) {
+      log(`\n⚠️  Nota: ${50 - createdUsers.length} usuários já existiam e foram reutilizados.`, 'yellow');
+    }
+    
     log('\n✅ Seed concluído! Agora você pode visualizar os gráficos no Grafana.', 'green');
     log('   Acesse: http://localhost:3001 (admin/admin)', 'yellow');
     log('');

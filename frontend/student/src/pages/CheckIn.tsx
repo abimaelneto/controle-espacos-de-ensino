@@ -1,23 +1,29 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import CheckInForm from '@/components/features/CheckInForm';
 import RoomSelector from '@/components/features/RoomSelector';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Building2, Clock, ArrowLeft } from 'lucide-react';
+import { Building2, Clock, ArrowLeft, LogOut } from 'lucide-react';
 import { roomsService } from '@/services/rooms.service';
 import { recentRoomsStorage } from '@/utils/localStorage';
+import { useAuthStore } from '@/stores/auth.store';
 
 export default function CheckIn() {
+  const navigate = useNavigate();
+  const { logout, user } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const roomId = searchParams.get('roomId');
   const [roomNumber, setRoomNumber] = useState<string>('');
   const [roomData, setRoomData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   useEffect(() => {
     if (roomId) {
-      setLoading(true);
       // Buscar informações completas da sala
       roomsService
         .getRoom(roomId)
@@ -29,9 +35,6 @@ export default function CheckIn() {
           console.error('Erro ao buscar sala:', error);
           setRoomNumber('N/A');
           setRoomData(null);
-        })
-        .finally(() => {
-          setLoading(false);
         });
     }
   }, [roomId]);
@@ -52,22 +55,41 @@ export default function CheckIn() {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#8a0538]/5 via-white to-[#9654ff]/5">
         <div className="container mx-auto px-4 py-4 sm:py-8">
-          {/* Header */}
-          <div className="text-center mb-4 sm:mb-8">
-            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#8a0538] rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-xl sm:text-2xl">P</span>
+          {/* Header com Logout */}
+          <div className="flex justify-between items-start mb-4 sm:mb-8">
+            <div className="flex-1 text-center">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#8a0538] rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-xl sm:text-2xl">P</span>
+                </div>
+                <div className="text-left">
+                  <h1 className="text-2xl sm:text-4xl font-bold text-[#8a0538] mb-1">
+                    Check-in de Sala
+                  </h1>
+                  <p className="text-[#505050] text-xs sm:text-sm">PUCPR - Controle de Espaços</p>
+                </div>
               </div>
-              <div className="text-left">
-                <h1 className="text-2xl sm:text-4xl font-bold text-[#8a0538] mb-1">
-                  Check-in de Sala
-                </h1>
-                <p className="text-[#505050] text-xs sm:text-sm">PUCPR - Controle de Espaços</p>
-              </div>
+              <p className="text-[#505050] text-sm sm:text-base">
+                Selecione a sala para fazer check-in
+              </p>
             </div>
-            <p className="text-[#505050] text-sm sm:text-base">
-              Selecione a sala para fazer check-in
-            </p>
+            <div className="flex flex-col items-end gap-2">
+              {user && (
+                <div className="text-right text-xs sm:text-sm text-[#505050] mb-2">
+                  <div className="font-medium">{user.email}</div>
+                  <div className="text-[#505050]/70">{user.role}</div>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
 
           {/* Seletor de Salas */}
@@ -83,22 +105,41 @@ export default function CheckIn() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#8a0538]/5 via-white to-[#9654ff]/5">
       <div className="container mx-auto px-4 py-4 sm:py-8">
-        {/* Header - PUCPR Branding */}
-        <div className="text-center mb-4 sm:mb-8">
-          <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#8a0538] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xl sm:text-2xl">P</span>
+        {/* Header - PUCPR Branding com Logout */}
+        <div className="flex justify-between items-start mb-4 sm:mb-8">
+          <div className="flex-1 text-center">
+            <div className="flex items-center justify-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#8a0538] rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-xl sm:text-2xl">P</span>
+              </div>
+              <div className="text-left">
+                <h1 className="text-2xl sm:text-4xl font-bold text-[#8a0538] mb-1">
+                  Check-in de Sala
+                </h1>
+                <p className="text-[#505050] text-xs sm:text-sm">PUCPR - Controle de Espaços</p>
+              </div>
             </div>
-            <div className="text-left">
-              <h1 className="text-2xl sm:text-4xl font-bold text-[#8a0538] mb-1">
-                Check-in de Sala
-              </h1>
-              <p className="text-[#505050] text-xs sm:text-sm">PUCPR - Controle de Espaços</p>
-            </div>
+            <p className="text-[#505050] text-sm sm:text-base">
+              Identifique-se para acessar a sala
+            </p>
           </div>
-          <p className="text-[#505050] text-sm sm:text-base">
-            Identifique-se para acessar a sala
-          </p>
+          <div className="flex flex-col items-end gap-2">
+            {user && (
+              <div className="text-right text-xs sm:text-sm text-[#505050] mb-2">
+                <div className="font-medium">{user.email}</div>
+                <div className="text-[#505050]/70">{user.role}</div>
+              </div>
+            )}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              className="text-[#8a0538] border-[#8a0538] hover:bg-[#8a0538] hover:text-white"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
 
         {/* Botão Voltar */}

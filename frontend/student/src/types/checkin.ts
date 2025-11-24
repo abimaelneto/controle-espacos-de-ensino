@@ -1,8 +1,9 @@
 export interface CheckInRequest {
-  studentId: string;
+  studentId?: string;
   roomId: string;
   identificationMethod: 'CPF' | 'MATRICULA' | 'QR_CODE' | 'BIOMETRIC';
   identificationValue: string;
+  idempotencyKey?: string;
 }
 
 export interface CheckInResponse {

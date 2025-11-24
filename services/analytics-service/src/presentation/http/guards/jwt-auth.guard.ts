@@ -24,6 +24,12 @@ export class JwtAuthGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
+    
+    // Permitir requisições OPTIONS (preflight CORS) sem autenticação
+    if (request.method === 'OPTIONS') {
+      return true;
+    }
+    
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -31,10 +37,15 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     const token = authHeader.substring(7);
+    const jwtSecret = this.configService.get<string>('JWT_SECRET');
+
+    if (!jwtSecret) {
+      throw new UnauthorizedException('JWT_SECRET não configurado. Verifique o arquivo .env.local');
+    }
 
     try {
       const payload = this.jwtService.verify<JwtPayload>(token, {
-        secret: this.configService.get<string>('JWT_SECRET'),
+        secret: jwtSecret,
       });
 
       // Adiciona payload ao request para uso nos controllers
