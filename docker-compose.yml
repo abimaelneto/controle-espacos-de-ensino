@@ -173,15 +173,6 @@ services:
     depends_on:
       - prometheus
 
-  # Traefik removido - usar Kubernetes com NGINX Ingress para produção
-  # Para desenvolvimento local, acesse serviços diretamente por porta:
-  # - Auth: http://localhost:3000
-  # - Students: http://localhost:3001
-  # - Rooms: http://localhost:3002
-  # - Check-in: http://localhost:3003
-  # - Analytics: http://localhost:3004
-  # - Grafana: http://localhost:3005
-
 volumes:
   mysql-auth-data:
   mysql-students-data:
