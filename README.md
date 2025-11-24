@@ -8,6 +8,24 @@ Sistema para controle de uso de espaços de ensino com análise de taxa de ocupa
 > ```
 > Isso configura o ambiente, inicia a infraestrutura e serviços localmente!
 
+> **🧼 Reset rápido:** `npm run clean:all` encerra containers, remove volumes, `node_modules`, `.env.local` e caches. Rode-o sempre que quiser começar do zero.
+
+> **🌱 Seed resiliente:** `npm run seed:all` agora inicia automaticamente os microsserviços essenciais (auth, students, rooms, check-in) se eles não estiverem rodando. Basta garantir que o Docker Compose esteja no ar (`npm run docker:up`) e o script cuidará do resto.
+
+---
+
+## ✅ Como validar os requisitos do case
+
+O enunciado (`docs_ia/descricao_case`) exige três capacidades principais. A tabela abaixo mostra como confirmá-las rapidamente usando os fluxos documentados neste README:
+
+| Requisito do case | Onde validar | Passos resumidos |
+| --- | --- | --- |
+| CRUD de alunos | Frontend Admin (`http://localhost:5173`) | Após rodar o Quick Start, faça login com `admin@observability.local` / `Admin123!`, abra o menu **Alunos** e execute Criar → Editar → Listar → Excluir usando os dados seedados. |
+| Registro de entrada e saída | Frontend Student (`http://localhost:5174`) | Use o roteiro “Teste Rápido - Frontend de Students”: login com `student1@observability.local`, selecione uma sala, faça check-in e check-out usando matrícula `20240001`. |
+| API com autenticação/autorização | Swagger + DevTools | No fluxo do frontend verifique o header `Authorization: Bearer`. Opcionalmente abra `http://localhost:3000/api/docs`, autentique-se e teste endpoints protegidos; o seed cria usuários e tokens válidos automaticamente. |
+
+Esses passos podem ser executados em 5-10 minutos e cobrem todo o escopo descrito em `descricao_case`.
+
 ---
 
 ## 🧪 TESTE RÁPIDO - Frontend de Students (Para Avaliadores)
@@ -47,6 +65,8 @@ npm run docker:up
 
 # Crie dados de teste (alunos, salas, usuários)
 npm run seed:all
+#   - Executa `scripts/seed-observability.js` (dataset principal usado nos frontends)
+#   - Executa `tests/performance/scripts/seed-data.js` (dataset extra `stress.studentXX@pucpr.br` para testes de carga)
 
 # Inicie todos os serviços
 npm run dev
@@ -63,6 +83,8 @@ npm run dev
 - **Senha:** `Student123!`
 
 > **💡 Dica:** O seed cria 50 alunos. Você pode usar `student1` até `student50` com a mesma senha.
+>
+> **Obs.:** O script também gera usuários `stress.studentXX@pucpr.br` exclusivos para cenários de performance — eles não são necessários para validar os requisitos do case.
 
 #### 3️⃣ **O que você verá após o login:**
 
